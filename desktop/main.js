@@ -33,7 +33,8 @@ app.whenReady().then(() => {
   if (process.platform === 'darwin') Menu.setApplicationMenu(Menu.buildFromTemplate([{ role: 'appMenu' }, { role: 'editMenu' }, { role: 'viewMenu' }, { role: 'windowMenu' }]));
   else Menu.setApplicationMenu(null);
   // 위치·클립보드·화면 유지만 허용
-  const allow = new Set(['geolocation', 'clipboard-sanitized-write', 'clipboard-read', 'wake-lock', 'screen-wake-lock']);
+  const allow = new Set(['geolocation', 'clipboard-sanitized-write', 'clipboard-read', 'wake-lock', 'screen-wake-lock', 'media', 'mediaKeySystem']);
+  session.defaultSession.setPermissionCheckHandler((wc, perm) => allow.has(perm));
   session.defaultSession.setPermissionRequestHandler((wc, perm, cb) => cb(allow.has(perm)));
   createWindow();
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });

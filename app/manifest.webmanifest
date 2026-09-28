@@ -1,7 +1,7 @@
 {
   "name": "羅經 · 나경",
   "short_name": "나경",
-  "description": "28층 나경. 회전·나침반·판독·空亡 경고·十二長生·기록.",
+  "description": "28층 나경. 회전·나침반·판독·空亡 경고·十二長生·기록 주고받기·동기화.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

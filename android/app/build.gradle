@@ -47,6 +47,10 @@ android {
     }
 }
 
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+}
+
 // 저장소 루트의 app/ 웹앱을 assets/www로 복사한 뒤 빌드한다
 def copyWebApp = tasks.register('copyWebApp', Copy) {
     from rootProject.file('../app')

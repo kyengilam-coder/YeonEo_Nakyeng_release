@@ -1,6 +1,6 @@
 // 오프라인용 서비스 워커. 앱 파일은 설치 때 저장하고, 글꼴은 처음 받을 때 저장한다.
-const VER = 'nagyeong-v1';
-const SHELL = ['./', './index.html', './layers.json', './manifest.webmanifest', './icon.svg', './icon-512.png'];
+const VER = 'nagyeong-v2';
+const SHELL = ['./', './index.html', './layers.json', './manifest.webmanifest', './icon.svg', './icon-512.png', './vendor/qrcode.min.js', './vendor/jsQR.min.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VER).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

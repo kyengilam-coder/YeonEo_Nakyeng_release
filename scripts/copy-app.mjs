@@ -16,9 +16,13 @@ if (!DST.startsWith(ROOT + path.sep)) { console.error('dest must be inside the r
 fs.rmSync(DST, { recursive: true, force: true });
 fs.mkdirSync(DST, { recursive: true });
 let n = 0;
-for (const f of fs.readdirSync(SRC)) {
-  if (!fs.statSync(path.join(SRC, f)).isFile()) continue;
-  fs.copyFileSync(path.join(SRC, f), path.join(DST, f)); n++;
+function walk(src, dst) {
+  for (const f of fs.readdirSync(src)) {
+    const a = path.join(src, f), z = path.join(dst, f);
+    if (fs.statSync(a).isDirectory()) { fs.mkdirSync(z, { recursive: true }); walk(a, z); }
+    else { fs.copyFileSync(a, z); n++; }
+  }
 }
+walk(SRC, DST);
 if (!fs.existsSync(path.join(DST, 'index.html'))) { console.error('index.html missing in app/'); process.exit(1); }
 console.log(`copied ${n} files: app/ -> ${dest}`);
