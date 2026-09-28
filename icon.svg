@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#3b1b14"/>
+  <circle cx="256" cy="256" r="206" fill="#b99552"/>
+  <circle cx="256" cy="256" r="196" fill="#f1e7cf" stroke="#231c18" stroke-width="3"/>
+  <g fill="none" stroke="#231c18" stroke-width="2">
+    <circle cx="256" cy="256" r="160"/><circle cx="256" cy="256" r="124"/><circle cx="256" cy="256" r="88"/>
+  </g>
+  <g stroke="#231c18" stroke-width="2">
+    <line x1="256" y1="60" x2="256" y2="452"/><line x1="60" y1="256" x2="452" y2="256"/>
+    <line x1="117.4" y1="117.4" x2="394.6" y2="394.6"/><line x1="394.6" y1="117.4" x2="117.4" y2="394.6"/>
+    <line x1="154.5" y1="86.2" x2="357.5" y2="425.8"/><line x1="357.5" y1="86.2" x2="154.5" y2="425.8"/>
+    <line x1="86.2" y1="154.5" x2="425.8" y2="357.5"/><line x1="86.2" y1="357.5" x2="425.8" y2="154.5"/>
+  </g>
+  <circle cx="256" cy="256" r="52" fill="#f7f0dd" stroke="#231c18" stroke-width="3"/>
+  <polygon points="256,212 264,256 248,256" fill="#1f5fbf"/>
+  <polygon points="256,300 264,256 248,256" fill="#c1341f"/>
+  <circle cx="256" cy="256" r="6" fill="#b99552"/>
+  <text x="256" y="112" font-family="Noto Serif KR,serif" font-size="34" font-weight="600" text-anchor="middle" fill="#231c18">子</text>
+  <text x="256" y="416" font-family="Noto Serif KR,serif" font-size="34" font-weight="600" text-anchor="middle" fill="#231c18">午</text>
+  <text x="404" y="268" font-family="Noto Serif KR,serif" font-size="34" font-weight="600" text-anchor="middle" fill="#231c18">卯</text>
+  <text x="108" y="268" font-family="Noto Serif KR,serif" font-size="34" font-weight="600" text-anchor="middle" fill="#231c18">酉</text>
+</svg>
