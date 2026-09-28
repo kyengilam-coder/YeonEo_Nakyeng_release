@@ -26,7 +26,7 @@
 html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
 body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:"Noto Serif KR","Apple SD Gothic Neo","Nanum Myeongjo",serif;overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none}
 #app{position:relative;width:100%;height:100%;display:flex;flex-direction:column}
-header{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"t r";align-items:start;padding:8px 16px 4px;gap:4px 12px}
+header{contain:layout;display:grid;grid-template-columns:auto 1fr;grid-template-areas:"t r";align-items:start;padding:8px 16px 4px;gap:4px 12px}
 header h1{grid-area:t}#readout{grid-area:r}
 header h1{font-size:18px;font-weight:600;margin:0;letter-spacing:.06em;white-space:nowrap}
 header h1 small{font-weight:400;opacity:.7;margin-left:6px;font-size:13px}
@@ -45,7 +45,8 @@ header h1 .by{display:block;font-size:11px;font-weight:400;opacity:.6;letter-spa
 #kong.on{opacity:1;color:var(--cinnabar);font-weight:600}
 @media (max-width:600px){ header{grid-template-columns:auto 1fr;grid-template-areas:"t k" "v v" "z z";padding:6px 12px 2px} header h1{font-size:15px;align-self:center} #readout{display:contents} #readout .rl{grid-area:v;justify-content:flex-start} #readout .rl.zl{grid-area:z} #kong{grid-area:k;text-align:right;align-self:center;margin:0} #readout .d{font-size:20px;width:5rem} #readout .zl .d{font-size:14px} }
 #main{flex:1;display:flex;position:relative;min-height:0}
-#stage{flex:1;position:relative;overflow:hidden;min-width:0}
+#stage{flex:1;position:relative;overflow:hidden;min-width:0;contain:strict}
+#discWrap{position:absolute;inset:0;will-change:transform;transform-origin:50% 50%}   /* 회전·이동·확대는 이 div의 CSS transform: 그려 둔 盤을 GPU가 돌린다. <svg>에 직접 주면 SVG 전체가 매 프레임 다시 배치됨 */
 #stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 #sight{position:absolute;inset:0;pointer-events:none}
 #sight::before,#sight::after{content:"";position:absolute;background:var(--cinnabar);opacity:.85}
@@ -168,7 +169,7 @@ ul.pick li small{display:block;opacity:.75}
 </header>
 <div id="main">
 <div id="stage">
-  <svg id="svg" viewBox="-540 -540 1080 1080" xmlns="http://www.w3.org/2000/svg"><g id="view"><g id="disc"></g></g></svg>
+  <div id="discWrap"><svg id="svg" viewBox="-540 -540 1080 1080" xmlns="http://www.w3.org/2000/svg"><g id="view"><g id="disc"></g></g></svg></div>
   <div id="sight"><i class="t">向</i><i class="b">坐</i></div>
   <div id="tip"></div>
   <div id="siteChip"><span></span><button title="盤에서 터 표시 지우기">×</button></div>
@@ -344,7 +345,7 @@ const LAYER_INFO = {
 };
 // 설치형 앱(안드로이드) 연결: 안드로이드 앱이 window.NakyengAndroid를 넣어 준다. 웹·데스크톱에서는 없음
 const NATIVE=window.NakyengAndroid||null;
-const APP_VERSION=new URLSearchParams(location.search).get('v')||'0.7.1';   // 릴리스 때 scripts/copy-app.mjs가 VERSION 값으로 바꿔 넣음. 데스크톱 앱은 ?v=로 넘김
+const APP_VERSION=new URLSearchParams(location.search).get('v')||'0.7.2';   // 릴리스 때 scripts/copy-app.mjs가 VERSION 값으로 바꿔 넣음. 데스크톱 앱은 ?v=로 넘김
 const RELEASE_API='https://api.github.com/repos/kyengilam-coder/YeonEo_Nakyeng_release/releases/latest', RELEASE_PAGE='https://github.com/kyengilam-coder/YeonEo_Nakyeng_release/releases/latest';
 const SAN=['子','癸','丑','艮','寅','甲','卯','乙','辰','巽','巳','丙','午','丁','未','坤','申','庚','酉','辛','戌','乾','亥','壬'];
 const CN=['','一','二','三','四','五','六','七','八','九'];
@@ -441,20 +442,31 @@ function kongCheck(a){const out=[];
 function azNow(){return mod(-rot);}
 function sanLine(a){return `正針 ${valAt(3,a)} · 中針 ${valAt(12,a)} · 縫針 ${valAt(20,a)}`;}
 let hashT;
+// 盤의 회전·이동·확대는 <svg>를 감싼 div의 CSS transform으로 준다. SVG 안의 transform 속성을 바꾸면 3천여 요소를 매 프레임 다시 그리지만,
+// div의 CSS transform(will-change)은 한 번 그려 둔 그림을 GPU가 돌리기만 하므로 폰에서도 매끄럽다. 좌표계는 그대로(svgPt·tap은 rot·px·py·zoom으로 계산)
+const wrapEl=$('discWrap'), E={deg:$('deg'),san:$('san'),zdeg:$('zdeg'),zsan:$('zsan'),kong:$('kong')};
+let stW=0,stH=0; function measureStage(){const r=stage.getBoundingClientRect();stW=r.width;stH=r.height;}
+if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{measureStage();if(kongG)apply();}).observe(stage); else window.addEventListener('resize',()=>{measureStage();if(kongG)apply();});
+let lastKey=null,lastKongKey=null,lastReadKey='',lastAll=[],applyRAF=0;
+function scheduleApply(){if(!applyRAF)applyRAF=requestAnimationFrame(()=>{applyRAF=0;apply();});}   // 포인터 이벤트는 초당 120번도 오므로 한 프레임에 한 번만 그린다
 function apply(){
-  disc.setAttribute('transform',`rotate(${rot})`);
-  view.setAttribute('transform',`translate(${px} ${py}) scale(${zoom})`);
-  const az=azNow(), za=mod(az+180);
-  $('deg').innerHTML=az.toFixed(1)+'<span>°</span>'; $('san').textContent=sanLine(az);
-  $('zdeg').innerHTML=za.toFixed(1)+'<span>°</span>'; $('zsan').textContent=sanLine(za);
-  // 空亡
-  const kv=kongCheck(az), kz=kongCheck(za); kongG.innerHTML='';
-  const k=$('kong'); const all=[...kv.map(x=>({...x,side:'向'})),...kz.map(x=>({...x,side:'坐'}))];
-  if(all.length){k.classList.add('on');k.textContent=all.map(x=>`${x.side} ${x.big?'大空亡':'小空亡'} ${x.a}|${x.b} 경계 ${x.d.toFixed(1)}°`).join(' · ');
-    for(const x of all){const [x0,y0]=pol(x.L.r0-2,x.ang),[x1,y1]=pol(x.L.r1+2,x.ang);kongG.appendChild(el('line',{x1:x0,y1:y0,x2:x1,y2:y1}));}}
-  else{k.classList.remove('on');k.textContent='空亡 없음';}
-  if(document.body.classList.contains('open')&&curTab==='read') renderRead(az,za,all);
-  clearTimeout(hashT); hashT=setTimeout(()=>{try{history.replaceState(null,'','#az='+az.toFixed(1));}catch(e){}},250);
+  if(!kongG)return;
+  if(!stW)measureStage(); const sc=Math.min(stW,stH)/(2*VB);
+  wrapEl.style.transform=`translate(${(px*sc).toFixed(2)}px,${(py*sc).toFixed(2)}px) scale(${zoom}) rotate(${rot.toFixed(3)}deg)`;
+  const az=azNow(), za=mod(az+180), azT=az.toFixed(1);
+  const key=azT+'|'+S.hidden.join()+'|'+S.kongL.join()+'|'+S.gapSan+'|'+S.gapBun;   // 0.1° 단위로 표시가 바뀔 때만 글·空亡을 다시 계산
+  if(key!==lastKey){lastKey=key;
+    E.deg.innerHTML=azT+'<span>°</span>'; E.san.textContent=sanLine(az);
+    E.zdeg.innerHTML=za.toFixed(1)+'<span>°</span>'; E.zsan.textContent=sanLine(za);
+    const kv=kongCheck(az), kz=kongCheck(za);
+    const all=lastAll=[...kv.map(x=>({...x,side:'向'})),...kz.map(x=>({...x,side:'坐'}))];
+    if(all.length){E.kong.classList.add('on');E.kong.textContent=all.map(x=>`${x.side} ${x.big?'大空亡':'小空亡'} ${x.a}|${x.b} 경계 ${x.d.toFixed(1)}°`).join(' · ');}
+    else{E.kong.classList.remove('on');E.kong.textContent='空亡 없음';}
+    const kk=all.map(x=>x.n+':'+x.ang.toFixed(2)).join();   // 空亡 선은 경계가 바뀔 때만 다시 그림
+    if(kk!==lastKongKey){lastKongKey=kk;kongG.innerHTML='';for(const x of all){const [x0,y0]=pol(x.L.r0-2,x.ang),[x1,y1]=pol(x.L.r1+2,x.ang);kongG.appendChild(el('line',{x1:x0,y1:y0,x2:x1,y2:y1}));}}
+    clearTimeout(hashT); hashT=setTimeout(()=>{try{history.replaceState(null,'','#az='+az.toFixed(1));}catch(e){}},250);
+  }
+  if(document.body.classList.contains('open')&&curTab==='read'&&key!==lastReadKey){lastReadKey=key;renderRead(az,za,lastAll);}   // 판독표(28줄)는 값이 바뀌었을 때만
 }
 function renderRead(az,za,all){
   const b=$('rdBody'); b.innerHTML='';
@@ -747,9 +759,10 @@ const ACC_DEG={0:45,1:25,2:12,3:5};   // 안드로이드 센서 정확도 등급
 window.__nakyengHeading=function(flat,cam,pitch,acc){if(flat==null)return;flat=+flat;cam=+cam;pitch=+pitch;acc=+acc;if(!isFinite(flat))return;
   heading=mod(flat);
   if(aimOn){const h=(Math.abs(pitch)>25&&isFinite(cam))?mod(cam):mod(flat);aimAcc=ACC_DEG[acc]??null;aimRaw=h;
-    if(!aimFrozen){if(aimHd===null)aimHd=h;else{const d=mod(h-aimHd+180)-180;aimHd=mod(aimHd+d*0.25);}}}};
+    if(!aimFrozen){if(aimHd===null)aimHd=h;else{const d=mod(h-aimHd+180)-180;aimHd=mod(aimHd+d*(Math.abs(d)>20?0.5:0.25));}}}};
 const hasSensors=()=>NATIVE_COMPASS||(('ontouchstart' in window||navigator.maxTouchPoints>0)&&typeof DeviceOrientationEvent!=='undefined');
-let aimOn=false,aimStream=null,aimHd=null,aimRaw=null,aimAcc=null,aimFrozen=false,aimNeedle=3,aimRAF=null;
+let aimOn=false,aimStream=null,aimHd=null,aimRaw=null,aimAcc=null,aimFrozen=false,aimNeedle=3,aimRAF=null,aimKey='';
+window.addEventListener('resize',()=>{aimKey='';});
 const d2r=Math.PI/180;
 // 세워서 겨눌 때: 기기 뒤(카메라, 기기 -z축) 방향을 세계 좌표(x 동, y 북, z 위)로 돌려 방위를 구한다. W3C DeviceOrientation의 Z-X'-Y'' 회전
 function cameraHeading(a,b,g){const cA=Math.cos(a*d2r),sA=Math.sin(a*d2r),cB=Math.cos(b*d2r),sB=Math.sin(b*d2r),cG=Math.cos(g*d2r),sG=Math.sin(g*d2r);
@@ -761,9 +774,10 @@ function onOriAim(e){let h=null;
   else if(e.absolute&&typeof e.alpha==='number'){const b=e.beta||0,g=e.gamma||0;h=(Math.abs(b)<25&&Math.abs(g)<25)?mod(360-e.alpha):cameraHeading(e.alpha,b,g);if(h===null)return;}
   else return;
   aimRaw=h; if(aimFrozen)return;
-  if(aimHd===null)aimHd=h; else{const d=mod(h-aimHd+180)-180;aimHd=mod(aimHd+d*0.25);}}  // 흔들림을 줄이는 완만한 따라가기
+  if(aimHd===null)aimHd=h; else{const d=mod(h-aimHd+180)-180;aimHd=mod(aimHd+d*(Math.abs(d)>20?0.5:0.25));}}  // 흔들림을 줄이는 완만한 따라가기
 function aimTrue(){return aimHd===null?null:mod(aimHd+(S.declOn?S.decl:0));}
 function aimDraw(){if(!aimOn)return;const h=aimTrue();
+  const g0=curGuk();const key=(h===null?'-':h.toFixed(1))+'|'+aimNeedle+'|'+aimFrozen+'|'+aimAcc+'|'+(g0?g0.n:0);if(key===aimKey){aimRAF=requestAnimationFrame(aimDraw);return;}aimKey=key;   // 0.1° 단위로 바뀔 때만
   if(h===null){$('aimDeg').textContent='--.-°';$('aimJ').textContent=$('aimI').textContent=$('aimC').textContent='';}
   else{$('aimDeg').textContent=h.toFixed(1)+'°';$('aimJ').textContent=`${valAt(3,h)} · 分金 ${valAt(6,h)||'空'} · 坐 ${valAt(3,mod(h+180))}`;$('aimI').textContent=`${valAt(12,h)} · ${valAt(13,h)}`;
     const g=curGuk();$('aimC').textContent=`${valAt(20,h)} · 雙山 ${ssOf(h)}${g?' · '+g.name.replace('十二長生 ','')+' '+(valAt(g.n,h)||''):''}`;}
@@ -779,7 +793,7 @@ function drawTape(h){const cv=$('aimTape');const dpr=window.devicePixelRatio||1;
   g.font='10px sans-serif';for(let k=Math.ceil((h-span/2)/10)*10;k<=h+span/2;k+=10){const x=W/2+(k-h)*pxd;g.strokeStyle='rgba(241,231,207,.5)';g.beginPath();g.moveTo(x,H*0.8);g.lineTo(x,H);g.stroke();g.fillStyle='rgba(241,231,207,.75)';g.fillText(String(mod(k)),x,H*0.66);}
   g.strokeStyle='#c1341f';g.lineWidth=2;g.beginPath();g.moveTo(W/2,0);g.lineTo(W/2,H);g.stroke();}
 async function openAim(){if(aimOn)return;if(!hasSensors()){msg.textContent='조준 화면은 방위 센서가 있는 폰·패드에서만 됩니다.';return;}
-  aimOn=true;aimHd=null;aimRaw=null;aimAcc=null;aimFrozen=false;aimNeedle=3;$('aim').classList.add('on');$('aimSite').value=S.site||'';$('aimNeedle').value=String(aimNeedle);renderAimGroup();$('aimMsg').textContent='목표를 세로 선에 맞추고 종류 단추를 누르십시오. 철제·자석 근처는 피하고, 값이 흔들리면 기기를 8자로 돌려 보정하십시오.';
+  aimOn=true;aimHd=null;aimRaw=null;aimAcc=null;aimFrozen=false;aimKey='';aimNeedle=3;$('aim').classList.add('on');$('aimSite').value=S.site||'';$('aimNeedle').value=String(aimNeedle);renderAimGroup();$('aimMsg').textContent='목표를 세로 선에 맞추고 종류 단추를 누르십시오. 철제·자석 근처는 피하고, 값이 흔들리면 기기를 8자로 돌려 보정하십시오.';
   try{if(NATIVE_COMPASS)nativeCompass(true);
     else if(typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')throw new Error('센서 사용이 허용되지 않았습니다');window.addEventListener('deviceorientation',onOriAim,true);}
     else{window.addEventListener('deviceorientationabsolute',onOriAim,true);window.addEventListener('deviceorientation',onOriAim,true);}}
@@ -1015,15 +1029,15 @@ stage.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;const 
       if(ax==='h')dy=0; else if(ax==='v')dx=0;
       px=start.px+dx;py=start.py+dy;}
     else{const a=Math.atan2(p[1]-start.py,p[0]-start.px);rot=start.rot+(a-start.ang)*180/Math.PI;}
-    apply();}
+    scheduleApply();}
   else if(ptrs.size===2&&start){const [a,b]=[...ptrs.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);
     zoom=Math.min(6,Math.max(1,start.zoom*d/start.d));const cx=(a[0]+b[0])/2,cy=(a[1]+b[1])/2;
     px=cx-(start.cx-start.px)*zoom/start.zoom;py=cy-(start.cy-start.py)*zoom/start.zoom;
-    $('zoom').value=zoom;apply();}
+    $('zoom').value=zoom;scheduleApply();}
 });
 function up(e){if(ptrs.size===1&&moved<3&&!(start&&start.pan)){tap(ptrs.get(e.pointerId));}ptrs.delete(e.pointerId);start=null;stage.style.cursor=spaceDown?'grab':'';save();}
 stage.addEventListener('pointerup',up);stage.addEventListener('pointercancel',up);
-stage.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.1:0.9);apply();save();},{passive:false});
+stage.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.1:0.9);scheduleApply();save();},{passive:false});
 // 오른쪽 버튼 메뉴는 글 입력란 밖에서는 띄우지 않는다 (Chrome은 Shift+오른쪽 버튼이면 페이지가 막아도 띄움)
 document.addEventListener('contextmenu',e=>{const t=e.target;if(t&&((t.tagName==='INPUT'&&t.type!=='range')||t.tagName==='TEXTAREA'||t.isContentEditable))return;e.preventDefault();});
 $('zoom').addEventListener('input',e=>{zoom=+e.target.value;apply();save();});
@@ -1078,13 +1092,19 @@ function onOri(e){let h=null;
   else if(e.absolute&&typeof e.alpha==='number')h=(360-e.alpha)%360;
   if(h===null)return;heading=h;}
 let autoArm=false, sensorHold=false;   // autoArm: 첫 센서 값이 들어오면 나침반을 켠다 · sensorHold: 나침반 모드가 앱 센서(startCompass)를 잡고 있음
-function tick(){if(!sensor&&autoArm&&heading!==null){autoArm=false;turnOn(true);}
-  if(sensor&&heading!==null){const tgt=-(heading+(S.declOn?S.decl:0));let d=mod(tgt-rot+180)-180;rot+=d*0.15;apply();}requestAnimationFrame(tick);}
-requestAnimationFrame(tick);
+// 나침반 따라가기. 나침반이 켜져 있거나 첫 값을 기다릴 때만 돈다(늘 도는 rAF는 배터리와 CPU를 먹음).
+// 평활은 시간 기준(τ 90ms, 20° 넘게 벌어지면 45ms)이라 센서 주기(안드로이드 20Hz·웹 60Hz)와 상관없이 같은 느낌으로 따라오고, 0.02° 안으로 맞으면 그리지 않는다
+let tickOn=false,tickPrev=0;
+function ensureTick(){if(!tickOn){tickOn=true;tickPrev=0;requestAnimationFrame(tick);}}
+function tick(ts){const dt=tickPrev?Math.min(100,ts-tickPrev):16;tickPrev=ts;
+  if(!sensor&&autoArm&&heading!==null){autoArm=false;turnOn(true);}
+  if(sensor&&heading!==null){const tgt=-(heading+(S.declOn?S.decl:0));const d=mod(tgt-rot+180)-180;
+    if(Math.abs(d)>0.02){rot+=d*(1-Math.exp(-dt/(Math.abs(d)>20?45:90)));apply();}}
+  if(sensor||autoArm)requestAnimationFrame(tick);else tickOn=false;}
 async function keepAwake(on){if(NATIVE&&NATIVE.keepScreenOn){NATIVE.keepScreenOn(!!on);return;}try{if(on&&'wakeLock' in navigator){if(!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>{wl=null;});}}else if(!on&&wl){await wl.release();wl=null;}}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&sensor&&S.wake)keepAwake(true);});
 function holdNative(){if(NATIVE_COMPASS&&!sensorHold){sensorHold=true;nativeCompass(true);}}
-function turnOn(auto){sensor=true;bS.classList.add('on');keepAwake(S.wake);
+function turnOn(auto){sensor=true;ensureTick();bS.classList.add('on');keepAwake(S.wake);
   msg.textContent=(auto?'나침반이 자동으로 켜졌습니다(설정에서 끌 수 있음). ':'')+(S.declOn?`眞北 보정(${S.decl}°)을 적용해 `:'')+'자침이 磁北을 가리키도록 盤이 돌아갑니다. 화면 위쪽 붉은 선이 向입니다. 철제 구조물·자석 근처에서는 오차가 생깁니다.';}
 function stopSensor(){autoArm=false;if(!sensor)return;sensor=false;heading=null;bS.classList.remove('on');if(sensorHold){sensorHold=false;nativeCompass(false);}window.removeEventListener('deviceorientationabsolute',onOri,true);window.removeEventListener('deviceorientation',onOri,true);keepAwake(false);}
 async function startSensor(){if(sensor)return;
@@ -1104,7 +1124,7 @@ function autoCompass(){if(S.autoCompass===false||sensor||!hasSensors())return;
   if(NATIVE_COMPASS)holdNative();
   else if(typeof DeviceOrientationEvent.requestPermission==='function'){msg.textContent='나침반 단추를 누르면 센서로 盤이 磁北에 맞춰집니다.';return;}
   else{window.addEventListener('deviceorientationabsolute',onOri,true);window.addEventListener('deviceorientation',onOri,true);}
-  autoArm=true;}
+  autoArm=true;ensureTick();}
 const bA=$('bAxis'); const AXN={free:'이동 자유',h:'가로만 이동',v:'세로만 이동'};
 function setAxis(a){axis=a;bA.textContent=AXN[a];bA.classList.toggle('on',a!=='free');
   msg.textContent=a==='free'?'이동 방향 제한을 풀었습니다.':(a==='h'?'가로로만 움직입니다. 끌기(한 손가락·왼쪽 버튼 포함)가 이동이 되고, 세로는 고정됩니다.':'세로로만 움직입니다. 끌기(한 손가락·왼쪽 버튼 포함)가 이동이 되고, 가로는 고정됩니다.');}
