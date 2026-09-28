@@ -30,6 +30,9 @@ header{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"t r";ali
 header h1{grid-area:t}#readout{grid-area:r}
 header h1{font-size:18px;font-weight:600;margin:0;letter-spacing:.06em;white-space:nowrap}
 header h1 small{font-weight:400;opacity:.7;margin-left:6px;font-size:13px}
+header h1 .by{display:block;font-size:11px;font-weight:400;opacity:.6;letter-spacing:.02em;margin-top:1px}
+#updBar{display:none;width:100%;font-size:12.5px;padding:4px 8px;border-radius:8px;background:rgba(185,149,82,.25);align-items:center;gap:6px;flex-wrap:wrap}
+#updBar.on{display:flex}
 #readout{text-align:right;line-height:1.3;font-size:13px;font-variant-numeric:tabular-nums}
 #readout .rl{display:flex;justify-content:flex-end;align-items:baseline;gap:8px;white-space:nowrap}
 #readout .rl b{font-weight:600;color:var(--cinnabar);font-size:14px}
@@ -113,12 +116,27 @@ kbd{font:inherit;font-size:11.5px;padding:0 5px;border:1px solid var(--line);bor
 #modal textarea{font:inherit;font-size:12.5px;padding:6px 8px;border-radius:7px;border:1px solid var(--line);background:var(--field);color:var(--fg);-webkit-user-select:text;user-select:text}
 body.drop::after{content:"기록 파일을 여기에 놓으십시오";position:fixed;inset:12px;border:3px dashed var(--gilt);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(185,149,82,.12);pointer-events:none;z-index:60}
 h3.h{font-size:13px;margin:10px 0 6px;opacity:.75;font-weight:600}
+.kd{display:inline-block;font-size:11px;padding:0 6px;border-radius:999px;background:var(--gilt);color:#26100b;margin-right:5px;vertical-align:1px}
+.kd.k-1{background:#c7daef}.kd.k-2{background:#f2c7bd}.kd.k-3{background:#cde4c1}
+#aim{display:none;position:fixed;inset:0;background:#000;z-index:40;color:#f1e7cf;font-size:13px;-webkit-user-select:none;user-select:none}
+#aim.on{display:block}
+#aimV{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#111}
+.aim-top{position:absolute;top:0;left:0;right:0;padding:calc(8px + env(safe-area-inset-top,0px)) 14px 8px;background:linear-gradient(rgba(38,16,11,.85),rgba(38,16,11,0));text-shadow:0 1px 2px #000}
+.aim-hd{display:flex;align-items:baseline;gap:10px}
+#aimDeg{font-size:34px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer}
+.aim-n{display:flex;gap:8px;font-size:13.5px;line-height:1.4}.aim-n b{color:#f2d79a;min-width:2.6em}
+#aimTape{position:absolute;left:0;right:0;top:calc(128px + env(safe-area-inset-top,0px));height:64px;width:100%}
+.aim-line{position:absolute;left:50%;top:calc(192px + env(safe-area-inset-top,0px));bottom:150px;width:2px;background:var(--cinnabar);transform:translateX(-50%);box-shadow:0 0 4px #000}
+.aim-bottom{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(rgba(38,16,11,0),rgba(38,16,11,.92))}
+.aim-bottom button{color:#f1e7cf;border-color:rgba(241,231,207,.5)}.aim-bottom button[data-kind]{font-weight:600;font-size:14px}
+.aim-bottom input,.aim-bottom select{background:rgba(0,0,0,.35);color:#f1e7cf;border-color:rgba(241,231,207,.4)}
+#aimAcc.warn{color:#ff9a86}
 </style>
 </head>
 <body>
 <div id="app">
 <header>
-  <h1>羅經<small id="nLayers">二十三層</small></h1>
+  <h1>羅經<small id="nLayers">二十三層</small><span class="by">by 鳶飛魚躍</span></h1>
   <div id="readout">
     <div class="rl"><b>向</b><span class="d" id="deg">0.0<span>°</span></span><span id="san">正針 子 · 中針 子 · 縫針 壬</span></div>
     <div class="rl zl"><b>坐</b><span class="d" id="zdeg">180.0<span>°</span></span><span id="zsan"></span></div>
@@ -151,12 +169,13 @@ h3.h{font-size:13px;margin:10px 0 6px;opacity:.75;font-weight:600}
     <ul class="ls" id="findList"></ul>
   </section>
   <section class="pane" id="p-rec">
-    <div class="row"><input type="text" id="memoIn" placeholder="메모 (터 이름 등)" style="flex:1"><button class="sm" id="bSave">현재 방위 저장</button></div>
+    <div class="row"><input type="text" id="siteIn" placeholder="터 이름" style="width:7em"><input type="text" id="memoIn" placeholder="메모" style="flex:1"><button class="sm" id="bSave">현재 방위 저장</button></div>
     <div class="row"><label class="chk"><input type="checkbox" id="cGps">위치(GPS)도 함께 저장</label><button class="sm" id="bCsv">CSV 내려받기</button></div>
     <h3>다른 기기와 주고받기</h3>
     <div class="row"><button class="sm" id="bShare">보내기</button><button class="sm" id="bExport">파일 내보내기</button><button class="sm" id="bImport">파일 가져오기</button><button class="sm" id="bRecLink">링크 복사</button><button class="sm" id="bQrShow">QR 보이기</button><button class="sm" id="bQrScan">QR 읽기</button><button class="sm" id="bPaste">붙여넣기</button></div>
     <div id="syncLine" class="row"></div>
     <input type="file" id="fileIn" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden><input type="file" id="qrImgIn" accept="image/*" capture="environment" hidden>
+    <div class="row"><label class="note">터 <select id="siteSel"><option value="">전체</option></select></label><span class="note" id="recCount"></span></div>
     <ul class="ls" id="recList"></ul>
   </section>
   <section class="pane" id="p-set">
@@ -181,6 +200,8 @@ h3.h{font-size:13px;margin:10px 0 6px;opacity:.75;font-weight:600}
       <div class="row"><button class="sm" id="bSyncNow">지금 동기화</button><button class="sm" id="bSyncQr">연결 QR</button><button class="sm" id="bSyncCode">연결 코드 복사</button><button class="sm" id="bSyncOff">연결 끊기</button></div>
       <p class="note" id="syncStatus"></p>
     </div>
+    <h3>버전</h3>
+    <div class="row"><span id="verRow" class="note"></span><button class="sm" id="bUpd">새 버전 확인</button><a class="note" href="#" id="relLink">내려받기 페이지</a></div>
     <h3>화면</h3>
     <div class="row"><label class="chk"><input type="checkbox" id="cWake">나침반 모드에서 화면 꺼짐 방지</label></div>
     <div class="row"><button class="sm" id="bClearStore">저장된 설정·기록 모두 지우기</button></div>
@@ -200,6 +221,7 @@ h3.h{font-size:13px;margin:10px 0 6px;opacity:.75;font-weight:600}
       <tr><td><kbd>Ctrl</kbd>+이동 끌기</td><td>더 많이 움직인 축으로만 이동. 오른쪽 버튼에는 Shift 대신 Ctrl을 쓰십시오(Shift+오른쪽 버튼은 브라우저 메뉴가 뜸)</td></tr>
       <tr><td>가운데로 (<kbd>C</kbd>)</td><td>확대·회전은 그대로 두고 盤을 화면 가운데로</td></tr>
       <tr><td>초기화</td><td>회전 0°, 확대 1배, 가운데로</td></tr>
+      <tr><td>조준</td><td>카메라로 목표를 겨누어 三針 방위를 읽고 坐向·得水·破水·砂를 저장. 破水를 재면 十二長生 局이 정해짐. 숫자를 누르면 값 고정</td></tr>
       <tr><td>기록 주고받기</td><td>보내기(공유 창)·파일·링크·QR·붙여넣기. 같은 기록은 수정이 늦은 쪽을 남기고 합침</td></tr>
       <tr><td>자동 동기화</td><td>설정에서 GitHub 토큰으로 연결하면 모든 기기가 같은 기록을 봄</td></tr>
       <tr><td>회전 잠금</td><td>한 손가락 끌기를 이동으로 바꿈</td></tr>
@@ -209,9 +231,26 @@ h3.h{font-size:13px;margin:10px 0 6px;opacity:.75;font-weight:600}
   </section>
 </aside>
 </div>
+<div id="aim">
+  <video id="aimV" playsinline muted autoplay></video>
+  <div class="aim-top">
+    <div class="aim-hd"><span id="aimDeg" title="누르면 고정">--.-°</span><span id="aimAcc" class="note"></span></div>
+    <div class="aim-n"><b>正針</b><span id="aimJ"></span></div>
+    <div class="aim-n"><b>中針</b><span id="aimI"></span></div>
+    <div class="aim-n"><b>縫針</b><span id="aimC"></span></div>
+  </div>
+  <canvas id="aimTape"></canvas>
+  <div class="aim-line"></div>
+  <div class="aim-bottom">
+    <div class="row"><input type="text" id="aimSite" placeholder="지금 재는 터 이름" style="flex:1"><select id="aimNeedle"><option value="3">正針 눈금</option><option value="12">中針 눈금</option><option value="20">縫針 눈금</option></select></div>
+    <div class="row"><button data-kind="坐向">坐向</button><button data-kind="得水">得水</button><button data-kind="破水">破水</button><button data-kind="砂">砂</button><button id="aimClose" style="margin-left:auto">닫기</button></div>
+    <div id="aimMsg" class="note"></div>
+  </div>
+</div>
 <div id="modal"><div class="box"><div class="mt"></div><div class="mb"></div><div class="mf"></div></div></div>
 <footer>
   <button id="bSensor">나침반</button>
+  <button id="bAim" title="카메라로 겨누어 방위를 재고 坐向·得水·破水·砂를 저장">조준</button>
   <button id="bLock">회전 잠금</button>
   <button id="bReset">초기화</button>
   <button id="bCenter" title="확대·회전은 그대로 두고 盤을 화면 가운데로 (C)">가운데로</button>
@@ -223,6 +262,7 @@ h3.h{font-size:13px;margin:10px 0 6px;opacity:.75;font-weight:600}
   <button class="tabbtn" data-tab="set">설정</button>
   <button class="tabbtn" data-tab="help">?</button>
   <label class="z">확대 <input id="zoom" type="range" min="1" max="6" step="0.05" value="1"></label>
+  <div id="updBar"></div>
   <div id="msg">끌어서 盤 회전 · 오른쪽 버튼(또는 Space) 끌기로 이동 · 방향키 이동 · [ ] 회전 · +/− 확대 · 이동 자유/가로/세로 · 층을 짚으면 이름 표시</div>
 </footer>
 </div>
@@ -261,10 +301,17 @@ const LAYER_INFO = {
 };
 // 설치형 앱(안드로이드) 연결: 안드로이드 앱이 window.NakyengAndroid를 넣어 준다. 웹·데스크톱에서는 없음
 const NATIVE=window.NakyengAndroid||null;
+const APP_VERSION=new URLSearchParams(location.search).get('v')||'0.6.0';   // 릴리스 때 scripts/copy-app.mjs가 VERSION 값으로 바꿔 넣음. 데스크톱 앱은 ?v=로 넘김
+const RELEASE_API='https://api.github.com/repos/kyengilam-coder/YeonEo_Nakyeng_release/releases/latest', RELEASE_PAGE='https://github.com/kyengilam-coder/YeonEo_Nakyeng_release/releases/latest';
 const SAN=['子','癸','丑','艮','寅','甲','卯','乙','辰','巽','巳','丙','午','丁','未','坤','申','庚','酉','辛','戌','乾','亥','壬'];
 const CN=['','一','二','三','四','五','六','七','八','九'];
 function numCN(n){if(n<10)return CN[n];if(n<20)return '十'+CN[n-10];return CN[Math.floor(n/10)]+'十'+CN[n%10];}
-const JG=l=>l.group==='jangsaeng';   // 十二長生 四局: 한 번에 하나만 보임
+const JG=l=>l.group==='jangsaeng';
+function ringCount(){return LAYERS.filter(l=>!l.group).length+new Set(LAYERS.filter(l=>l.group).map(l=>l.group)).size;}   // 같은 자리를 번갈아 쓰는 층은 하나로 셈   // 十二長生 四局: 한 번에 하나만 보임
+const KINDS={'坐向':{n:3},'得水':{n:20},'破水':{n:20},'砂':{n:12}};   // 기록 종류와 기준 針(층 번호)
+const SS12=['壬子','癸丑','艮寅','甲卯','乙辰','巽巳','丙午','丁未','坤申','庚酉','辛戌','乾亥'];
+function ssOf(az){const i=SAN.indexOf(valAt(20,az));return i<0?'':SS12[Math.floor((i+1)/2)%12];}   // 縫針 雙山
+function gukOfAz(az){return GUK_OF_SUGU[ssOf(az)]||null;}
 const GUK_OF_SUGU={'丁未':'木局','坤申':'木局','辛戌':'火局','乾亥':'火局','癸丑':'金局','艮寅':'金局','乙辰':'水局','巽巳':'水局'};
 const PAN={ji:{name:'地盤正針',c:'#f2d79a'},in:{name:'人盤中針',c:'#cde4c1'},cheon:{name:'天盤縫針',c:'#c7daef'}};
 function panOf(n){return n<=11?'ji':(n<=14?'in':'cheon');}
@@ -278,7 +325,7 @@ function el(n,a){const e=document.createElementNS(svgNS,n);for(const k in a)e.se
 function pol(r,a){const t=(a-90)*Math.PI/180;return [r*Math.cos(t),r*Math.sin(t)];}
 const mod=(a,m=360)=>((a%m)+m)%m;
 // ---- 설정 ----
-const DEF={declOn:false,decl:-8,gapSan:1.5,gapBun:1,kongL:[3,6],hidden:[],pan:true,gps:false,wake:true,dev:'',sync:null};
+const DEF={declOn:false,decl:-8,gapSan:1.5,gapBun:1,kongL:[3,6],hidden:[],pan:true,gps:false,wake:true,dev:'',sync:null,site:''};
 let S=Object.assign({},DEF);
 try{Object.assign(S,JSON.parse(localStorage.getItem('nagyeong.set')||'{}'));}catch(e){}
 function saveS(){try{localStorage.setItem('nagyeong.set',JSON.stringify(S));}catch(e){}}
@@ -437,7 +484,7 @@ function defaultDev(){const u=navigator.userAgent;if(NATIVE)return 'Android 앱'
 function devName(){return (S.dev||'').trim()||defaultDev();}
 function normRec(r){ // 옛 기록(번호 없음)·외부 기록을 v2 형태로. 번호가 없으면 시각·각도·메모로 같은 번호를 만들어 두 번 가져와도 겹치지 않게 한다
   if(!r||typeof r!=='object')return null; const az=+r.az; if(!isFinite(az))return null; const t=+r.t||Date.now();
-  const o={id:String(r.id||hashId(`${t}|${az.toFixed(2)}|${r.memo||''}`)),t,m:+r.m||t,dev:String(r.dev||''),az:mod(az),za:isFinite(+r.za)?mod(+r.za):mod(az+180),memo:String(r.memo||''),del:!!r.del};
+  const o={id:String(r.id||hashId(`${t}|${az.toFixed(2)}|${r.memo||''}`)),t,m:+r.m||t,dev:String(r.dev||''),az:mod(az),za:isFinite(+r.za)?mod(+r.za):mod(az+180),memo:String(r.memo||''),kind:KINDS[r.kind]?r.kind:'坐向',site:String(r.site||'').trim(),del:!!r.del};
   if(r.lat!=null&&r.lon!=null&&isFinite(+r.lat)&&isFinite(+r.lon)){o.lat=+r.lat;o.lon=+r.lon;if(r.acc!=null&&isFinite(+r.acc))o.acc=+r.acc;}
   if(r.decl!=null&&isFinite(+r.decl))o.decl=+r.decl; if(r.sensor!=null)o.sensor=!!r.sensor; return o;}
 let REC=[]; try{REC=JSON.parse(localStorage.getItem(REC_KEY)||'[]').map(normRec).filter(Boolean);}catch(e){}
@@ -459,10 +506,14 @@ function fmtT(t){const d=new Date(t);const p=n=>String(n).padStart(2,'0');return
 function armed(b,label){if(b.dataset.armed){clearTimeout(+b.dataset.t);delete b.dataset.armed;b.textContent=b.dataset.orig;b.classList.remove('danger');return true;}
   b.dataset.orig=b.textContent;b.dataset.armed='1';b.textContent=label;b.classList.add('danger');
   b.dataset.t=setTimeout(()=>{if(b.dataset.armed){delete b.dataset.armed;b.textContent=b.dataset.orig;b.classList.remove('danger');}},3000);return false;}
-function renderRec(){const ul=$('recList'); ul.innerHTML=''; $('cGps').checked=S.gps; renderSyncLine();
-  const rows=liveRec(); if(!rows.length){ul.innerHTML='<li><span class="note">저장된 기록이 없습니다.</span></li>';return;}
+let siteFilter='';
+function renderRec(){const ul=$('recList'); ul.innerHTML=''; $('cGps').checked=S.gps; renderSyncLine(); if(document.activeElement!==$('siteIn'))$('siteIn').value=S.site||'';
+  const all=liveRec(); const sites=[...new Set(all.map(r=>r.site).filter(Boolean))].sort(); const sel=$('siteSel'); if(!sites.includes(siteFilter))siteFilter='';
+  sel.innerHTML='<option value="">전체</option>'+sites.map(x=>`<option${x===siteFilter?' selected':''}>${x.replace(/</g,'&lt;')}</option>`).join(''); sel.style.display=sites.length?'':'none';
+  const rows=siteFilter?all.filter(r=>r.site===siteFilter):all; $('recCount').textContent=rows.length?`${rows.length}건`:'';
+  if(!rows.length){ul.innerHTML='<li><span class="note">저장된 기록이 없습니다.</span></li>';return;}
   rows.slice().reverse().forEach(r=>{const li=document.createElement('li');
-    li.innerHTML=`<div class="g"><b>${valAt(3,r.za)}坐${valAt(3,r.az)}向</b> · 向 ${r.az.toFixed(1)}° · 分金 ${valAt(6,r.za)||'空'}${r.memo?' · '+r.memo:''}<small>${fmtT(r.t)}${r.dev?' · '+r.dev:''}${r.lat!=null?` · ${r.lat.toFixed(5)}, ${r.lon.toFixed(5)}`:''}</small></div><button class="sm">불러오기</button><button class="sm">삭제</button>`;
+    li.innerHTML=`<div class="g"><span class="kd k-${KINDS[r.kind]?Object.keys(KINDS).indexOf(r.kind):0}">${r.kind}</span>${kindNote(r)} · ${r.az.toFixed(1)}°${r.memo?' · '+r.memo:''}<small>${r.site?'터 '+r.site+' · ':''}${fmtT(r.t)}${r.dev?' · '+r.dev:''}${r.lat!=null?` · ${r.lat.toFixed(5)}, ${r.lon.toFixed(5)}`:''}</small></div><button class="sm">불러오기</button><button class="sm">삭제</button>`;
     const [bl,bd]=li.querySelectorAll('button');
     bl.addEventListener('click',()=>{if(sensor)stopSensor();setAz(r.az);openTab('read',true);});
     bd.addEventListener('click',()=>{if(armed(bd,'정말 삭제')){r.del=true;r.m=Date.now();r.dev=devName();saveRec();renderRec();msg.textContent='기록을 삭제했습니다.';}});
@@ -470,13 +521,15 @@ function renderRec(){const ul=$('recList'); ul.innerHTML=''; $('cGps').checked=S
     ul.appendChild(li);});
 }
 $('cGps').addEventListener('change',e=>{S.gps=e.target.checked;saveS();});
-$('bSave').addEventListener('click',()=>{const az=azNow(); const now=Date.now(); const r={id:rid(),t:now,m:now,dev:devName(),az,za:mod(az+180),memo:$('memoIn').value.trim(),decl:S.declOn?S.decl:null,sensor,del:false};
+$('siteSel').addEventListener('change',e=>{siteFilter=e.target.value;renderRec();});
+$('siteIn').addEventListener('change',e=>{S.site=e.target.value.trim();saveS();});
+$('bSave').addEventListener('click',()=>{const az=azNow(); const now=Date.now(); S.site=$('siteIn').value.trim();saveS();const r={id:rid(),t:now,m:now,dev:devName(),kind:'坐向',site:S.site,az,za:mod(az+180),memo:$('memoIn').value.trim(),decl:S.declOn?S.decl:null,sensor,del:false};
   const done=()=>{REC.push(r);saveRec();$('memoIn').value='';renderRec();msg.textContent='저장했습니다.';};
   if(S.gps&&navigator.geolocation){msg.textContent='위치를 읽는 중…';navigator.geolocation.getCurrentPosition(p=>{r.lat=p.coords.latitude;r.lon=p.coords.longitude;r.acc=p.coords.accuracy;done();},()=>{msg.textContent='위치를 읽지 못해 방위만 저장합니다.';done();},{timeout:8000,enableHighAccuracy:true});}
   else done();});
 function csvText(){const esc=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
-  const rows=[['일시','向°','坐°','坐向(正針)','坐分金','向分金','中針向','縫針向','메모','위도','경도','磁偏角보정','센서','기기','번호'].map(esc).join(',')];
-  for(const r of liveRec())rows.push([fmtT(r.t),r.az.toFixed(1),r.za.toFixed(1),`${valAt(3,r.za)}坐${valAt(3,r.az)}向`,valAt(6,r.za),valAt(6,r.az),valAt(12,r.az),valAt(20,r.az),r.memo,r.lat??'',r.lon??'',r.decl??'',r.sensor?'나침반':'수동',r.dev,r.id].map(esc).join(','));
+  const rows=[['일시','종류','터','方位°','坐°','坐向(正針)','坐分金','向分金','中針向','縫針向','雙山','메모','위도','경도','磁偏角보정','센서','기기','번호'].map(esc).join(',')];
+  for(const r of liveRec())rows.push([fmtT(r.t),r.kind,r.site,r.az.toFixed(1),r.za.toFixed(1),r.kind==='坐向'?`${valAt(3,r.za)}坐${valAt(3,r.az)}向`:'',valAt(6,r.za),valAt(6,r.az),valAt(12,r.az),valAt(20,r.az),ssOf(r.az),r.memo,r.lat??'',r.lon??'',r.decl??'',r.sensor?'나침반':'수동',r.dev,r.id].map(esc).join(','));
   return '﻿'+rows.join('\r\n');}
 $('bCsv').addEventListener('click',()=>{if(!liveRec().length){msg.textContent='저장된 기록이 없습니다.';return;}offerFile('nagyeong-'+new Date().toISOString().slice(0,10)+'.csv',csvText());});
 function openExternal(u){if(NATIVE&&NATIVE.openExternal){NATIVE.openExternal(u);return;}window.open(u,'_blank');}
@@ -510,10 +563,10 @@ function parseCsv(text){const rows=[];let row=[],cell='',q=false;text=text.repla
   for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'){if(text[i+1]==='"'){cell+='"';i++;}else q=false;}else cell+=c;}
     else if(c==='"')q=true;else if(c===','){row.push(cell);cell='';}else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);rows.push(row);row=[];cell='';}else cell+=c;}
   if(cell||row.length){row.push(cell);rows.push(row);}
-  const h=rows.shift()||[];const ix=n=>h.indexOf(n);const iT=ix('일시'),iAz=ix('向°'),iM=ix('메모'),iLa=ix('위도'),iLo=ix('경도'),iD=ix('磁偏角보정'),iS=ix('센서'),iDev=ix('기기'),iId=ix('번호');
+  const h=rows.shift()||[];const ix=n=>h.indexOf(n);const iT=ix('일시'),iAz=ix('方位°')>=0?ix('方位°'):ix('向°'),iK=ix('종류'),iSite=ix('터'),iM=ix('메모'),iLa=ix('위도'),iLo=ix('경도'),iD=ix('磁偏角보정'),iS=ix('센서'),iDev=ix('기기'),iId=ix('번호');
   if(iT<0||iAz<0)throw new Error('나경 CSV가 아닙니다');
   return rows.filter(r=>r.length>iAz&&r[iAz]!=='').map(r=>{const m=(r[iT]||'').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);const t=m?new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5]).getTime():Date.now();
-    return {id:iId>=0&&r[iId]?r[iId]:undefined,t,az:+r[iAz],memo:iM>=0?r[iM]:'',lat:iLa>=0&&r[iLa]!==''?+r[iLa]:null,lon:iLo>=0&&r[iLo]!==''?+r[iLo]:null,decl:iD>=0&&r[iD]!==''?+r[iD]:null,sensor:iS>=0?r[iS]==='나침반':undefined,dev:iDev>=0?r[iDev]:''};});}
+    return {id:iId>=0&&r[iId]?r[iId]:undefined,t,az:+r[iAz],memo:iM>=0?r[iM]:'',lat:iLa>=0&&r[iLa]!==''?+r[iLa]:null,lon:iLo>=0&&r[iLo]!==''?+r[iLo]:null,decl:iD>=0&&r[iD]!==''?+r[iD]:null,sensor:iS>=0?r[iS]==='나침반':undefined,dev:iDev>=0?r[iDev]:'',kind:iK>=0?r[iK]:undefined,site:iSite>=0?r[iSite]:''};});}
 async function importText(text,from){text=String(text||'').trim();if(!text){msg.textContent='빈 내용입니다.';return;}
   try{
     if(text.startsWith('nkc:')){await connectFromCode(text);return;}
@@ -529,9 +582,9 @@ function confirmImport(list,from){const rows=list.map(normRec).filter(Boolean);c
   showModal('기록 가져오기',body,[{label:'가져오기',cls:'on',fn:()=>{closeModal();applyImport(rows,from);openTab('rec',true);}},{label:'취소',fn:closeModal}]);}
 
 // ---- B. 링크·QR ----
-function packRecords(list){return JSON.stringify({v:2,dev:devName(),r:list.map(r=>[r.id,r.t,r.m,r.dev,+r.az.toFixed(2),r.memo,r.lat??null,r.lon??null,r.decl??null,r.sensor?1:0,r.del?1:0])});}
+function packRecords(list){return JSON.stringify({v:2,dev:devName(),r:list.map(r=>[r.id,r.t,r.m,r.dev,+r.az.toFixed(2),r.memo,r.lat??null,r.lon??null,r.decl??null,r.sensor?1:0,r.del?1:0,r.kind||'坐向',r.site||''])});}
 function unpackRecords(s){const j=JSON.parse(s);if(!j||!Array.isArray(j.r))throw new Error('기록 형식이 아닙니다');
-  return j.r.map(a=>({id:a[0],t:a[1],m:a[2],dev:a[3],az:a[4],memo:a[5],lat:a[6],lon:a[7],decl:a[8],sensor:!!a[9],del:!!a[10]}));}
+  return j.r.map(a=>({id:a[0],t:a[1],m:a[2],dev:a[3],az:a[4],memo:a[5],lat:a[6],lon:a[7],decl:a[8],sensor:!!a[9],del:!!a[10],kind:a[11],site:a[12]}));}
 function b64u(b){let s='';for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode.apply(null,b.subarray(i,i+8192));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
 function unb64u(s){s=s.replace(/-/g,'+').replace(/_/g,'/');s+='='.repeat((4-s.length%4)%4);const t=atob(s);const u=new Uint8Array(t.length);for(let i=0;i<t.length;i++)u[i]=t.charCodeAt(i);return u;}
 async function deflate(str){const u=new TextEncoder().encode(str);if(typeof CompressionStream==='undefined')return 'j'+b64u(u);
@@ -637,6 +690,96 @@ $('bSyncNow').addEventListener('click',()=>syncNow(true));
 $('bSyncQr').addEventListener('click',async()=>{if(!syncOn())return;await showQrFrames([`nkc:${S.sync.token}:${S.sync.gistId}`],'동기화 연결 QR','다른 기기에서 기록 → "QR 읽기"로 읽으면 같은 저장소에 연결됩니다. 이 QR에는 GitHub 토큰이 들어 있으니 다른 사람에게 보이지 마십시오.');});
 $('bSyncCode').addEventListener('click',async()=>{if(!syncOn())return;const c=`nkc:${S.sync.token}:${S.sync.gistId}`;if(NATIVE&&NATIVE.copyText)NATIVE.copyText(c);else{try{await navigator.clipboard.writeText(c);}catch(e){prompt('연결 코드',c);}}msg.textContent='연결 코드를 복사했습니다. 다른 기기의 기록 → 붙여넣기에 넣으십시오. 토큰이 들어 있으니 남에게 보내지 마십시오.';});
 
+// ===== 조준 화면(AR): 카메라로 목표를 겨누어 三針 방위를 읽고 坐向·得水·破水·砂를 저장 =====
+const hasSensors=()=>('ontouchstart' in window||navigator.maxTouchPoints>0)&&typeof DeviceOrientationEvent!=='undefined';
+let aimOn=false,aimStream=null,aimHd=null,aimRaw=null,aimAcc=null,aimFrozen=false,aimNeedle=3,aimRAF=null;
+const d2r=Math.PI/180;
+// 세워서 겨눌 때: 기기 뒤(카메라, 기기 -z축) 방향을 세계 좌표(x 동, y 북, z 위)로 돌려 방위를 구한다. W3C DeviceOrientation의 Z-X'-Y'' 회전
+function cameraHeading(a,b,g){const cA=Math.cos(a*d2r),sA=Math.sin(a*d2r),cB=Math.cos(b*d2r),sB=Math.sin(b*d2r),cG=Math.cos(g*d2r),sG=Math.sin(g*d2r);
+  const vx=-(cA*sG+cG*sA*sB), vy=-(sA*sG-cA*cG*sB); // R·(0,0,-1)의 동·북 성분
+  if(Math.hypot(vx,vy)<0.2)return null; // 거의 눕힌 상태: 카메라가 땅이나 하늘을 봄
+  return mod(Math.atan2(vx,vy)/d2r);}
+function onOriAim(e){let h=null;
+  if(typeof e.webkitCompassHeading==='number'){h=e.webkitCompassHeading;aimAcc=typeof e.webkitCompassAccuracy==='number'?e.webkitCompassAccuracy:null;}   // iOS: 세워도 카메라 방향
+  else if(e.absolute&&typeof e.alpha==='number'){const b=e.beta||0,g=e.gamma||0;h=(Math.abs(b)<25&&Math.abs(g)<25)?mod(360-e.alpha):cameraHeading(e.alpha,b,g);if(h===null)return;}
+  else return;
+  aimRaw=h; if(aimFrozen)return;
+  if(aimHd===null)aimHd=h; else{const d=mod(h-aimHd+180)-180;aimHd=mod(aimHd+d*0.25);}}  // 흔들림을 줄이는 완만한 따라가기
+function aimTrue(){return aimHd===null?null:mod(aimHd+(S.declOn?S.decl:0));}
+function aimDraw(){if(!aimOn)return;const h=aimTrue();
+  if(h===null){$('aimDeg').textContent='--.-°';$('aimJ').textContent=$('aimI').textContent=$('aimC').textContent='';}
+  else{$('aimDeg').textContent=h.toFixed(1)+'°';$('aimJ').textContent=`${valAt(3,h)} · 分金 ${valAt(6,h)||'空'} · 坐 ${valAt(3,mod(h+180))}`;$('aimI').textContent=`${valAt(12,h)} · ${valAt(13,h)}`;
+    const g=curGuk();$('aimC').textContent=`${valAt(20,h)} · 雙山 ${ssOf(h)}${g?' · '+g.name.replace('十二長生 ','')+' '+(valAt(g.n,h)||''):''}`;}
+  const acc=$('aimAcc');acc.textContent=aimFrozen?'고정됨 · 숫자를 누르면 풀림':(aimAcc!=null&&aimAcc>=0?`±${Math.round(aimAcc)}°`:'');acc.classList.toggle('warn',aimAcc!=null&&aimAcc>15);
+  drawTape(h);aimRAF=requestAnimationFrame(aimDraw);}
+function drawTape(h){const cv=$('aimTape');const dpr=window.devicePixelRatio||1;const W=cv.clientWidth,H=cv.clientHeight;if(!W||!H)return;if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
+  const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);g.fillStyle='rgba(38,16,11,.6)';g.fillRect(0,0,W,H);
+  if(h===null)return;const L=byN(aimNeedle);if(!L)return;const span=90,pxd=W/span;   // 화면 가로 = 90°
+  const big='600 15px "Noto Serif KR",serif';g.textAlign='center';g.textBaseline='middle';
+  for(const [a0,w,t] of L.cells){const d=mod(a0-h+180)-180;if(Math.abs(d)>span/2+w)continue;const x0=W/2+d*pxd,x1=x0+w*pxd;
+    g.strokeStyle='rgba(241,231,207,.9)';g.lineWidth=1;g.beginPath();g.moveTo(x0,H*0.5);g.lineTo(x0,H);g.stroke();
+    if(t){g.font=big;g.fillStyle=Math.abs(d+w/2)<w/2?'#f2d79a':'#f1e7cf';g.fillText(t,(x0+x1)/2,H*0.3);}}
+  g.font='10px sans-serif';for(let k=Math.ceil((h-span/2)/10)*10;k<=h+span/2;k+=10){const x=W/2+(k-h)*pxd;g.strokeStyle='rgba(241,231,207,.5)';g.beginPath();g.moveTo(x,H*0.8);g.lineTo(x,H);g.stroke();g.fillStyle='rgba(241,231,207,.75)';g.fillText(String(mod(k)),x,H*0.66);}
+  g.strokeStyle='#c1341f';g.lineWidth=2;g.beginPath();g.moveTo(W/2,0);g.lineTo(W/2,H);g.stroke();}
+async function openAim(){if(aimOn)return;if(!hasSensors()){msg.textContent='조준 화면은 방위 센서가 있는 폰·패드에서만 됩니다.';return;}
+  aimOn=true;aimHd=null;aimRaw=null;aimAcc=null;aimFrozen=false;$('aim').classList.add('on');$('aimSite').value=S.site||'';$('aimNeedle').value=String(aimNeedle);$('aimMsg').textContent='목표를 세로 선에 맞추고 종류 단추를 누르십시오. 철제·자석 근처는 피하고, 값이 흔들리면 기기를 8자로 돌려 보정하십시오.';
+  try{if(typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')throw new Error('센서 사용이 허용되지 않았습니다');window.addEventListener('deviceorientation',onOriAim,true);}
+    else{window.addEventListener('deviceorientationabsolute',onOriAim,true);window.addEventListener('deviceorientation',onOriAim,true);}}
+  catch(e){$('aimMsg').textContent='센서를 켤 수 없습니다: '+e.message;}
+  keepAwake(true);
+  try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('카메라 없음');aimStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});const v=$('aimV');v.srcObject=aimStream;await v.play();}
+  catch(e){$('aimMsg').textContent='카메라를 열지 못했습니다('+(e.message||e.name)+'). 눈금만으로 겨눌 수 있습니다: 기기 뒷면을 목표로 향하게 하십시오.';}
+  setTimeout(()=>{if(aimOn&&aimRaw===null)$('aimMsg').textContent='방위 센서 값이 들어오지 않습니다. 이 기기·브라우저에서는 조준 화면을 쓸 수 없습니다.';},3000);
+  aimDraw();}
+function closeAim(){if(!aimOn)return;aimOn=false;$('aim').classList.remove('on');cancelAnimationFrame(aimRAF);window.removeEventListener('deviceorientationabsolute',onOriAim,true);window.removeEventListener('deviceorientation',onOriAim,true);
+  if(aimStream){aimStream.getTracks().forEach(t=>t.stop());aimStream=null;}if(!sensor)keepAwake(false);}
+function kindNote(r){const az=r.az;switch(r.kind){
+  case '得水':{const g=curGuk();return `縫針 ${valAt(20,az)} · 雙山 ${ssOf(az)}`+(g?` · ${g.name.replace('十二長生 ','')} ${valAt(g.n,az)||''}`:'');}
+  case '破水':{const g=gukOfAz(az);return `縫針 ${valAt(20,az)} · 雙山 ${ssOf(az)} → ${g||'局 없음(旺·生方)'}`;}
+  case '砂':return `中針 ${valAt(12,az)} · ${valAt(13,az)}`;
+  default:return `<b>${valAt(3,r.za)}坐${valAt(3,az)}向</b> · 分金 ${valAt(6,r.za)||'空'}`;}}
+function aimSave(kind){const h=aimTrue();if(h===null){$('aimMsg').textContent='아직 방위를 읽지 못했습니다.';return;}
+  const site=$('aimSite').value.trim();S.site=site;saveS();const now=Date.now();
+  const r={id:rid(),t:now,m:now,dev:devName(),kind,site,az:h,za:mod(h+180),memo:'',decl:S.declOn?S.decl:null,sensor:true,del:false};
+  const done=()=>{REC.push(r);saveRec();let note=`${kind} 저장 ${h.toFixed(1)}° · `;
+    if(kind==='坐向'){setAz(h);note+=`${valAt(3,r.za)}坐${valAt(3,h)}向`;}
+    else if(kind==='破水'){const g=gukOfAz(h);const L=g&&LAYERS.find(l=>JG(l)&&l.name.endsWith(g));if(L)setGuk(L.n);note+=kindNote(r);}
+    else{note+=kindNote(r).replace(/<[^>]+>/g,'');if(kind==='得水'&&!curGuk())note+=' · 破水를 먼저 재면 局이 정해집니다';}
+    $('aimMsg').textContent=note;msg.textContent=note;if(document.body.classList.contains('open')&&curTab==='rec')renderRec();};
+  if(S.gps&&navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>{r.lat=p.coords.latitude;r.lon=p.coords.longitude;r.acc=p.coords.accuracy;done();},()=>done(),{timeout:6000,enableHighAccuracy:true});else done();
+  aimNeedle=KINDS[kind].n;$('aimNeedle').value=String(aimNeedle);}
+$('bAim').addEventListener('click',openAim);$('aimClose').addEventListener('click',closeAim);
+$('aimDeg').addEventListener('click',()=>{aimFrozen=!aimFrozen;if(!aimFrozen&&aimRaw!==null)aimHd=aimRaw;});
+$('aimNeedle').addEventListener('change',e=>{aimNeedle=+e.target.value;});
+document.querySelectorAll('#aim button[data-kind]').forEach(b=>b.addEventListener('click',()=>aimSave(b.dataset.kind)));
+if(!hasSensors())$('bAim').style.display='none';
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&aimOn)closeAim();});
+
+
+// ===== 새 버전 확인·자동 업데이트 =====
+// 웹·설치형 웹앱: 서비스 워커가 새 파일을 받으면 새로고침을 권한다. 앱(안드로이드·데스크톱·웹): 하루 한 번 GitHub 릴리스를 확인해 안내한다.
+// 데스크톱(Windows·Linux AppImage)은 앱 자체가 electron-updater로 내려받아 다시 시작할 때 설치한다.
+function platformKind(){const u=navigator.userAgent;if(NATIVE)return 'android';if(/Electron/.test(u))return /Windows/.test(u)?'win':/Mac/.test(u)?'mac':'linux';if(/iPad|iPhone/.test(u)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))return 'ios';return 'web';}
+function semverGt(a,b){const P=x=>String(x||'').replace(/^v/,'').split('.').map(n=>parseInt(n,10)||0);const pa=P(a),pb=P(b);for(let i=0;i<3;i++){if((pa[i]||0)!==(pb[i]||0))return (pa[i]||0)>(pb[i]||0);}return false;}
+function assetFor(assets,kind){const f=re=>(assets||[]).find(a=>re.test(a.name));return kind==='android'?f(/android\.apk$/):kind==='win'?f(/windows-setup\.exe$/):kind==='mac'?f(/mac-universal\.dmg$/):kind==='linux'?f(/\.AppImage$/):null;}
+let updInfo=null;
+async function checkUpdate(manual){if(!navigator.onLine){if(manual)msg.textContent='오프라인이라 새 버전을 확인할 수 없습니다.';return;}
+  try{const r=await fetch(RELEASE_API,{headers:{Accept:'application/vnd.github+json'}});if(!r.ok)throw new Error('GitHub '+r.status);const j=await r.json();const v=String(j.tag_name||'').replace(/^v/,'');S.updChecked=Date.now();saveS();
+    if(semverGt(v,APP_VERSION)){const kind=platformKind();const a=assetFor(j.assets,kind);updInfo={v,kind,url:a?a.browser_download_url:(j.html_url||RELEASE_PAGE)};showUpdate();}
+    else{updInfo=null;if(manual)msg.textContent=`최신 버전입니다 (${APP_VERSION}).`;}
+    renderUpdRow();}
+  catch(e){if(manual)msg.textContent='새 버전 확인 실패: '+e.message;}}
+function showUpdate(){if(!updInfo)return;const k=updInfo.kind,webish=k==='ios'||k==='web';
+  const how=webish?'새로고침하면 적용됩니다':k==='win'||k==='linux'?'앱을 다시 시작하면 자동으로 설치됩니다. 바로 받으려면 "받기"':'받아서 설치하십시오';
+  const bar=$('updBar');bar.innerHTML=`새 버전 <b>${updInfo.v}</b> (지금 ${APP_VERSION}) · ${how} <button class="sm" id="updGo">${webish?'새로고침':'받기'}</button><button class="sm" id="updX">닫기</button>`;bar.classList.add('on');
+  bar.querySelector('#updGo').addEventListener('click',()=>{if(webish)location.reload();else openExternal(updInfo.url);});bar.querySelector('#updX').addEventListener('click',()=>bar.classList.remove('on'));}
+function renderUpdRow(){const e=$('verRow');if(!e)return;e.textContent=`버전 ${APP_VERSION}`+(updInfo?` · 새 버전 ${updInfo.v} 있음`:S.updChecked?` · 마지막 확인 ${fmtT(S.updChecked)}`:'');}
+$('bUpd').addEventListener('click',()=>checkUpdate(true));
+$('relLink').addEventListener('click',e=>{e.preventDefault();openExternal(RELEASE_PAGE);});
+function watchSw(reg){const note=()=>{const bar=$('updBar');bar.innerHTML='새 버전을 받았습니다. <button class="sm" id="updGo">새로고침</button>';bar.classList.add('on');bar.querySelector('#updGo').addEventListener('click',()=>location.reload());};
+  if(reg.waiting&&navigator.serviceWorker.controller)note();
+  reg.addEventListener('updatefound',()=>{const w=reg.installing;if(!w)return;w.addEventListener('statechange',()=>{if((w.state==='installed'||w.state==='activated')&&navigator.serviceWorker.controller)note();});});
+  setInterval(()=>reg.update().catch(()=>{}),60*60*1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)reg.update().catch(()=>{});});}
 // ---- 작은 창(모달) ----
 function showModal(title,body,buttons){const m=$('modal');m.querySelector('.mt').textContent=title;const mb=m.querySelector('.mb');mb.innerHTML='';mb.appendChild(body);
   const mf=m.querySelector('.mf');mf.innerHTML='';for(const b of buttons||[]){const el=document.createElement('button');el.className='sm '+(b.cls||'');el.textContent=b.label;el.addEventListener('click',b.fn);mf.appendChild(el);}
@@ -644,7 +787,7 @@ function showModal(title,body,buttons){const m=$('modal');m.querySelector('.mt')
 function closeModal(){$('modal').classList.remove('on');}
 $('modal').addEventListener('click',e=>{if(e.target===$('modal')){stopScan();closeModal();}});
 // 설정
-function renderSet(){renderSyncSet();$('cDecl').checked=S.declOn;$('declIn').value=S.decl;$('gapSan').value=S.gapSan;$('gapBun').value=S.gapBun;$('cWake').checked=S.wake;
+function renderSet(){renderSyncSet();renderUpdRow();$('cDecl').checked=S.declOn;$('declIn').value=S.decl;$('gapSan').value=S.gapSan;$('gapBun').value=S.gapBun;$('cWake').checked=S.wake;
   const d=$('kongLayers'); d.innerHTML='<span class="note">空亡 검사 층:</span> ';
   for(const n of [3,6,12,20,22]){const L=byN(n); if(!L)continue; const lb=document.createElement('label'); lb.className='chk'; lb.style.display='inline-flex'; lb.style.marginRight='8px';
     lb.innerHTML=`<input type="checkbox" ${S.kongL.includes(n)?'checked':''}> ${L.name}`;
@@ -703,7 +846,7 @@ window.addEventListener('keydown',e=>{
     case 'h': case 'H': case 'ㅗ': setAxis(axis==='h'?'free':'h'); break;
     case 'v': case 'V': case 'ㅍ': setAxis(axis==='v'?'free':'v'); break;
     case 'c': case 'C': case 'ㅊ': center(); break;
-    case 'Escape': if($('modal').classList.contains('on')){stopScan();closeModal();}else closeDrawer(); break;
+    case 'Escape': if(aimOn)closeAim();else if($('modal').classList.contains('on')){stopScan();closeModal();}else closeDrawer(); break;
     default: used=false;
   }
   if(used){e.preventDefault();apply();save();}
@@ -762,9 +905,10 @@ async function loadLayers(){
 }
 (async()=>{
   LAYERS=await loadLayers(); if(!LAYERS.length){msg.textContent='층 데이터를 읽지 못했습니다.';return;}
-  build(); $('nLayers').textContent=numCN(LAYERS.length)+'層'; $('zoom').value=zoom; apply();
+  build(); $('nLayers').textContent=numCN(ringCount())+'層'; $('zoom').value=zoom; apply();
   checkRecHash(); if(syncOn()&&S.sync.auto)setTimeout(()=>syncNow(false),1500);
-  if(!NATIVE&&'serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){try{navigator.serviceWorker.register('sw.js');}catch(e){}}
+  if(!NATIVE&&'serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){try{navigator.serviceWorker.register('sw.js').then(watchSw).catch(()=>{});}catch(e){}}
+  if(!S.updChecked||Date.now()-S.updChecked>86400000)setTimeout(()=>checkUpdate(false),5000);
 })();
 </script>
 </body>

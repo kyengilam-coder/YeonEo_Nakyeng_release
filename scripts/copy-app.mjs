@@ -25,4 +25,11 @@ function walk(src, dst) {
 }
 walk(SRC, DST);
 if (!fs.existsSync(path.join(DST, 'index.html'))) { console.error('index.html missing in app/'); process.exit(1); }
+// 버전 도장: 환경 변수 NAKYENG_VERSION(릴리스 태그) → 없으면 VERSION 파일. 페이지의 APP_VERSION 기본값을 바꿔 넣는다
+const ver = (process.env.NAKYENG_VERSION || fs.readFileSync(path.join(ROOT, 'VERSION'), 'utf-8')).trim().replace(/^v/, '');
+const ip = path.join(DST, 'index.html');
+const html = fs.readFileSync(ip, 'utf-8').replace(/(const APP_VERSION=new URLSearchParams\(location\.search\)\.get\('v'\)\|\|')[^']*(')/, `$1${ver}$2`);
+if (!html.includes(`||'${ver}'`)) { console.error('APP_VERSION 자리를 찾지 못했습니다'); process.exit(1); }
+fs.writeFileSync(ip, html);
+console.log('version stamped:', ver);
 console.log(`copied ${n} files: app/ -> ${dest}`);

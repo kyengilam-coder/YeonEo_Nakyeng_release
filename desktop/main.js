@@ -1,6 +1,8 @@
 // 羅經 · 나경 데스크톱 앱 (Windows · macOS · Linux)
 // app/ 폴더의 웹앱을 창 하나에 띄운다. 인터넷 없이 동작하며, 외부 링크는 기본 브라우저로 연다.
-const { app, BrowserWindow, shell, Menu, session } = require('electron');
+const { app, BrowserWindow, shell, Menu, session, dialog } = require('electron');
+let autoUpdater = null;
+try { ({ autoUpdater } = require('electron-updater')); } catch (e) { autoUpdater = null; }
 const path = require('node:path');
 
 if (!app.requestSingleInstanceLock()) { app.quit(); }
@@ -20,11 +22,36 @@ function createWindow() {
     icon: path.join(__dirname, 'build', 'icon.png'),
     webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false },
   });
-  win.loadFile(path.join(appDir(), 'index.html'));
+  win.loadFile(path.join(appDir(), 'index.html'), { query: { v: app.getVersion() } });   // 페이지가 버전을 알고 새 버전 안내에 쓴다
   // 새 창·외부 주소는 기본 브라우저로
   win.webContents.setWindowOpenHandler(({ url }) => { if (/^https?:/.test(url)) shell.openExternal(url); return { action: 'deny' }; });
   win.webContents.on('will-navigate', (e, url) => { if (!url.startsWith('file:')) { e.preventDefault(); if (/^https?:/.test(url)) shell.openExternal(url); } });
+  setupUpdates();
   win.on('closed', () => { win = null; });
+}
+
+// 자동 업데이트: GitHub Release의 latest*.yml을 보고 내려받아, 다시 시작할 때 설치한다.
+// 서명 없는 macOS 앱은 자동 설치가 되지 않으므로 건너뛰고(페이지가 새 버전을 안내), deb로 설치한 Linux도 건너뛴다.
+let updatesReady = false;
+function setupUpdates() {
+  if (updatesReady || !autoUpdater || !app.isPackaged) return;
+  if (process.platform === 'darwin') return;
+  if (process.platform === 'linux' && !process.env.APPIMAGE) return;
+  updatesReady = true;
+  try {
+    autoUpdater.autoDownload = true;
+    autoUpdater.autoInstallOnAppQuit = true;
+    autoUpdater.logger = null;
+    autoUpdater.on('update-downloaded', info => {
+      if (!win) return;
+      dialog.showMessageBox(win, { type: 'info', buttons: ['지금 다시 시작', '나중에'], defaultId: 0, cancelId: 1, title: '나경 새 버전',
+        message: `새 버전 ${info.version}이 준비됐습니다.`, detail: '지금 다시 시작하면 바로 설치됩니다. "나중에"를 누르면 앱을 닫을 때 설치됩니다.' })
+        .then(r => { if (r.response === 0) autoUpdater.quitAndInstall(); }).catch(() => {});
+    });
+    autoUpdater.on('error', () => {});
+    setTimeout(() => autoUpdater.checkForUpdates().catch(() => {}), 8000);
+    setInterval(() => autoUpdater.checkForUpdates().catch(() => {}), 6 * 60 * 60 * 1000);
+  } catch (e) {}
 }
 
 app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.focus(); } });

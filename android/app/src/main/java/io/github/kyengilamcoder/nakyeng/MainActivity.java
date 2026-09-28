@@ -202,7 +202,8 @@ public class MainActivity extends Activity {
     @SuppressWarnings("deprecation")
     public void onBackPressed() {
         web.evaluateJavascript(
-                "(function(){var m=document.getElementById('modal');if(m&&m.classList.contains('on')){if(typeof stopScan==='function')stopScan();if(typeof closeModal==='function')closeModal();return 1}"
+                "(function(){if(typeof aimOn!=='undefined'&&aimOn&&typeof closeAim==='function'){closeAim();return 1}"
+                        + "var m=document.getElementById('modal');if(m&&m.classList.contains('on')){if(typeof stopScan==='function')stopScan();if(typeof closeModal==='function')closeModal();return 1}"
                         + "if(document.body.classList.contains('open')&&typeof closeDrawer==='function'){closeDrawer();return 1}return 0})()",
                 v -> { if (!"1".equals(v)) MainActivity.super.onBackPressed(); });
     }

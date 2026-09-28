@@ -59,6 +59,7 @@ jobs:
       - run: npm run dist:${{ matrix.target }}
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          NAKYENG_VERSION: ${{ needs.version.outputs.v }}
       - run: ls -la dist
       - uses: actions/upload-artifact@v4
         with:
@@ -70,6 +71,7 @@ jobs:
             desktop/dist/Nakyeng-*.zip
             desktop/dist/Nakyeng-*.AppImage
             desktop/dist/Nakyeng-*.deb
+            desktop/dist/latest*.yml
 
   android:
     needs: version
@@ -120,10 +122,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: 웹판 압축
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 웹판 준비(버전 도장)·압축
+        env:
+          NAKYENG_VERSION: ${{ needs.version.outputs.v }}
         run: |
+          node scripts/copy-app.mjs web-out
           mkdir -p out
-          (cd app && zip -qr "../out/Nakyeng-${{ needs.version.outputs.v }}-web.zip" .)
+          (cd web-out && zip -qr "../out/Nakyeng-${{ needs.version.outputs.v }}-web.zip" .)
       - uses: actions/upload-artifact@v4
         with:
           name: web
@@ -133,7 +141,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          SITE="$RUNNER_TEMP/site"; mkdir -p "$SITE"; cp -r app/. "$SITE/"; touch "$SITE/.nojekyll"
+          SITE="$RUNNER_TEMP/site"; mkdir -p "$SITE"; cp -r web-out/. "$SITE/"; touch "$SITE/.nojekyll"
           cd "$SITE"
           git init -q -b gh-pages
           git config user.name "github-actions[bot]"
@@ -150,6 +158,15 @@ jobs:
         with:
           path: out
           merge-multiple: true
+      - name: 태그를 이 커밋으로 (수동 실행으로 같은 버전을 다시 낼 때)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f "v${{ needs.version.outputs.v }}" "${GITHUB_SHA}"
+          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "refs/tags/v${{ needs.version.outputs.v }}"
       - name: 체크섬·릴리스 노트
         shell: bash
         run: |
