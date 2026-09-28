@@ -1,7 +1,7 @@
 {
-  "name": "羅經 · 나경",
-  "short_name": "나경",
-  "description": "28층 나경. 회전·나침반·조준(AR)·판독·空亡 경고·十二長生·기록 주고받기·동기화.",
+  "name": "鳶魚 羅經 · 연어 나경",
+  "short_name": "연어 나경",
+  "description": "28층 나경. 회전·나침반·조준(AR)·판독·空亡 경고·十二長生·터 방위도·기록 주고받기·동기화.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

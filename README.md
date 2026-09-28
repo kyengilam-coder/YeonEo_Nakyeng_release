@@ -10,7 +10,7 @@
 | **macOS** | `…-mac-universal.dmg`를 열어 Nakyeng을 응용 프로그램 폴더로 끌어 놓습니다. 처음에는 **오른쪽 클릭 → 열기**. "손상되었습니다"가 나오면 터미널에서 `xattr -cr /Applications/Nakyeng.app`. |
 | **Linux** | AppImage: `chmod +x Nakyeng-*.AppImage` 후 실행. Debian·Ubuntu: `sudo apt install ./Nakyeng-*-linux-amd64.deb`. |
 | **Android** | `…-android.apk`를 폰에서 내려받아 누릅니다. "출처를 알 수 없는 앱 설치"를 허용하라는 안내가 나오면 허용합니다. Android 7.0 이상. |
-| **iPad · iPhone** | 애플은 App Store 밖 설치 파일을 허용하지 않습니다. Safari로 **https://kyengilam-coder.github.io/YeonEo_Nakyeng_release/** 를 열고 공유 단추 → **홈 화면에 추가**. 한 번 연 뒤에는 인터넷 없이도 열립니다. |
+| **iPad · iPhone** | 애플은 App Store 밖 설치 파일을 허용하지 않습니다. Safari로 **https://kyengilam-coder.github.io/YeonEo_Nakyeng_release/** 를 열고 공유 단추 → **홈 화면에 추가**("연어 나경"으로 설치됩니다). 한 번 연 뒤에는 인터넷 없이도 열립니다. |
 | **그 밖의 브라우저** | `…-web.zip`을 풀어 `index.html`을 엽니다. |
 
 모든 판은 인터넷 없이 동작합니다. 인터넷이 있으면 Noto Serif KR 글꼴을 받아 쓰고, 없으면 기기 글꼴로 표시합니다.

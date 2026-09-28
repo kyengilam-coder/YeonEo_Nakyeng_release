@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>羅經 · 나경</title>
+<title>鳶魚 羅經 · 연어 나경</title>
 <meta name="description" content="羅經 23층 나경. 회전·나침반·판독·空亡 경고·기록.">
 <meta name="theme-color" content="#3b1b14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="나경">
+<meta name="apple-mobile-web-app-title" content="연어 나경">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-512.png">
@@ -134,6 +134,15 @@ h3.h{font-size:13px;margin:10px 0 6px;opacity:.75;font-weight:600}
 .aim-bottom button{color:#f1e7cf;border-color:rgba(241,231,207,.5)}.aim-bottom button[data-kind]{font-weight:600;font-size:14px}
 .aim-bottom input,.aim-bottom select{background:rgba(0,0,0,.35);color:#f1e7cf;border-color:rgba(241,231,207,.4)}
 #aimAcc.warn{color:#ff9a86}
+/* 터: 방위도·盤 위 표시 */
+#stMap{display:block;width:100%;max-width:340px;height:auto;margin:6px auto}
+#stSum div{margin:3px 0}
+#siteChip{display:none;position:absolute;left:10px;top:8px;max-width:70%;background:var(--panel);border-radius:999px;padding:3px 4px 3px 10px;font-size:12.5px;align-items:center;gap:4px;box-shadow:0 1px 4px rgba(0,0,0,.15);z-index:2}
+#siteChip.on{display:flex}
+#siteChip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#siteChip button{padding:0 7px;font-size:15px;line-height:1.3;border:none}
+#addList li label{flex:1;align-items:flex-start}
+#addList li small{display:block}
 </style>
 </head>
 <body>
@@ -151,10 +160,11 @@ h3.h{font-size:13px;margin:10px 0 6px;opacity:.75;font-weight:600}
   <svg id="svg" viewBox="-540 -540 1080 1080" xmlns="http://www.w3.org/2000/svg"><g id="view"><g id="disc"></g></g></svg>
   <div id="sight"><i class="t">向</i><i class="b">坐</i></div>
   <div id="tip"></div>
+  <div id="siteChip"><span></span><button title="盤에서 터 표시 지우기">×</button></div>
 </div>
 <aside id="drawer">
   <div id="tabs">
-    <button data-tab="read">판독</button><button data-tab="layers">층</button><button data-tab="find">찾기</button><button data-tab="rec">기록</button><button data-tab="set">설정</button><button data-tab="help">도움말</button>
+    <button data-tab="read">판독</button><button data-tab="layers">층</button><button data-tab="find">찾기</button><button data-tab="rec">기록</button><button data-tab="site">터</button><button data-tab="set">설정</button><button data-tab="help">도움말</button>
     <button class="x" id="bClose" title="닫기 (Esc)">×</button>
   </div>
   <section class="pane" id="p-read">
@@ -178,8 +188,22 @@ h3.h{font-size:13px;margin:10px 0 6px;opacity:.75;font-weight:600}
     <div class="row"><button class="sm" id="bShare">보내기</button><button class="sm" id="bExport">파일 내보내기</button><button class="sm" id="bImport">파일 가져오기</button><button class="sm" id="bRecLink">링크 복사</button><button class="sm" id="bQrShow">QR 보이기</button><button class="sm" id="bQrScan">QR 읽기</button><button class="sm" id="bPaste">붙여넣기</button></div>
     <div id="syncLine" class="row"></div>
     <input type="file" id="fileIn" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden><input type="file" id="qrImgIn" accept="image/*" capture="environment" hidden>
-    <div class="row"><label class="note">터 <select id="siteSel"><option value="">전체</option></select></label><span class="note" id="recCount"></span></div>
+    <div class="row"><label class="note">터 <select id="siteSel"><option value="">전체</option></select></label><span class="note" id="recCount"></span><button class="sm" id="bRecSite" title="같은 터의 기록을 방위도로 봄">터 화면</button></div>
     <ul class="ls" id="recList"></ul>
+  </section>
+  <section class="pane" id="p-site">
+    <div class="row"><label class="note">터 <select id="stSel"></select></label><button class="sm" id="bSiteNew">새 터</button><span class="note" id="stCur"></span></div>
+    <p class="note" id="stEmpty">아직 터가 없습니다. "새 터"를 만들고 그 안에서 재면 기록이 자동으로 묶입니다. 기록 탭에서 터 이름을 적어 저장해도 됩니다.</p>
+    <div id="stBox">
+      <div class="row"><button class="sm" id="bSiteHere" title="지금부터 저장하는 기록을 이 터에 묶음">이 터에서 재기</button><button class="sm" id="bSiteLoad" title="坐向으로 盤을 돌리고 得水·破水·砂를 盤 위에 표시">盤에 불러오기</button><button class="sm" id="bSiteUp" title="방위도를 向이 위로 오도록 돌림">向 위로</button><button class="sm" id="bSiteRename">이름 바꾸기</button></div>
+      <svg id="stMap" viewBox="-170 -170 340 340" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="stSum"></div>
+      <h3>이 터만 보내기</h3>
+      <div class="row"><button class="sm" id="bSiteShare">보내기</button><button class="sm" id="bSiteExport">파일 내보내기</button><button class="sm" id="bSiteLink">링크 복사</button><button class="sm" id="bSiteQr">QR 보이기</button><button class="sm" id="bSiteCsv">CSV 내려받기</button></div>
+      <h3>이 터의 기록 <span id="stCount" class="note"></span></h3>
+      <div class="row"><button class="sm" id="bSiteAdd">기록 넣기</button><span class="note">다른 기록을 이 터에 넣거나, 아래 "빼기"로 뺄 수 있습니다.</span></div>
+      <ul class="ls" id="stList"></ul>
+    </div>
   </section>
   <section class="pane" id="p-set">
     <h3>眞北 보정 (磁偏角)</h3>
@@ -226,6 +250,7 @@ h3.h{font-size:13px;margin:10px 0 6px;opacity:.75;font-weight:600}
       <tr><td>가운데로 (<kbd>C</kbd>)</td><td>확대·회전은 그대로 두고 盤을 화면 가운데로</td></tr>
       <tr><td>초기화</td><td>회전 0°, 확대 1배, 가운데로</td></tr>
       <tr><td>조준</td><td>카메라로 목표를 겨누어 三針 방위를 읽고 坐向·得水·破水·砂를 저장. 破水를 재면 十二長生 局이 정해짐. 숫자를 누르면 값 고정</td></tr>
+      <tr><td>터</td><td>같은 터에서 잰 기록을 묶어 坐向을 가운데 둔 방위도로 봄. 새 터 만들기, 기록 넣기·빼기, 터만 보내기(파일·링크·QR·CSV). "盤에 불러오기"는 坐向으로 盤을 돌리고 得水·破水·砂를 盤 둘레에 표시</td></tr>
       <tr><td>기록 주고받기</td><td>보내기(공유 창)·파일·링크·QR·붙여넣기. 같은 기록은 수정이 늦은 쪽을 남기고 합침</td></tr>
       <tr><td>자동 동기화</td><td>설정에서 GitHub 토큰으로 연결하면 모든 기기가 같은 기록을 봄</td></tr>
       <tr><td>회전 잠금</td><td>한 손가락 끌기를 이동으로 바꿈</td></tr>
@@ -263,6 +288,7 @@ h3.h{font-size:13px;margin:10px 0 6px;opacity:.75;font-weight:600}
   <button class="tabbtn" data-tab="layers">층</button>
   <button class="tabbtn" data-tab="find">찾기</button>
   <button class="tabbtn" data-tab="rec">기록</button>
+  <button class="tabbtn" data-tab="site">터</button>
   <button class="tabbtn" data-tab="set">설정</button>
   <button class="tabbtn" data-tab="help">?</button>
   <label class="z">확대 <input id="zoom" type="range" min="1" max="6" step="0.05" value="1"></label>
@@ -305,7 +331,7 @@ const LAYER_INFO = {
 };
 // 설치형 앱(안드로이드) 연결: 안드로이드 앱이 window.NakyengAndroid를 넣어 준다. 웹·데스크톱에서는 없음
 const NATIVE=window.NakyengAndroid||null;
-const APP_VERSION=new URLSearchParams(location.search).get('v')||'0.6.2';   // 릴리스 때 scripts/copy-app.mjs가 VERSION 값으로 바꿔 넣음. 데스크톱 앱은 ?v=로 넘김
+const APP_VERSION=new URLSearchParams(location.search).get('v')||'0.7.0';   // 릴리스 때 scripts/copy-app.mjs가 VERSION 값으로 바꿔 넣음. 데스크톱 앱은 ?v=로 넘김
 const RELEASE_API='https://api.github.com/repos/kyengilam-coder/YeonEo_Nakyeng_release/releases/latest', RELEASE_PAGE='https://github.com/kyengilam-coder/YeonEo_Nakyeng_release/releases/latest';
 const SAN=['子','癸','丑','艮','寅','甲','卯','乙','辰','巽','巳','丙','午','丁','未','坤','申','庚','酉','辛','戌','乾','亥','壬'];
 const CN=['','一','二','三','四','五','六','七','八','九'];
@@ -329,12 +355,12 @@ function el(n,a){const e=document.createElementNS(svgNS,n);for(const k in a)e.se
 function pol(r,a){const t=(a-90)*Math.PI/180;return [r*Math.cos(t),r*Math.sin(t)];}
 const mod=(a,m=360)=>((a%m)+m)%m;
 // ---- 설정 ----
-const DEF={declOn:false,decl:-8,gapSan:1.5,gapBun:1,kongL:[3,6],hidden:[],pan:true,gps:false,wake:true,autoCompass:true,dev:'',sync:null,site:''};
+const DEF={declOn:false,decl:-8,gapSan:1.5,gapBun:1,kongL:[3,6],hidden:[],pan:true,gps:false,wake:true,autoCompass:true,dev:'',sync:null,site:'',shown:'',siteUp:false};   // shown: 盤에 불러온 터, siteUp: 방위도를 向 위로
 let S=Object.assign({},DEF);
 try{Object.assign(S,JSON.parse(localStorage.getItem('nagyeong.set')||'{}'));}catch(e){}
 function saveS(){try{localStorage.setItem('nagyeong.set',JSON.stringify(S));}catch(e){}}
 // ---- 상태 ----
-let LAYERS=EMBEDDED_LAYERS, layerG={}, hl, hlCell, kongG, bandsOn=true;
+let LAYERS=EMBEDDED_LAYERS, layerG={}, hl, hlCell, kongG, siteG, bandsOn=true;
 let rot=0, zoom=1, px=0, py=0, sensor=false, locked=false, axis='free'; // axis: free | h | v
 try{const s=JSON.parse(localStorage.getItem('nagyeong')||'{}'); if(typeof s.rot==='number')rot=s.rot; if(s.zoom)zoom=s.zoom;}catch(e){}
 {const m=(location.hash+location.search).match(/[#?&]az=(-?[\d.]+)/); if(m){rot=-mod(+m[1]);}}
@@ -380,6 +406,7 @@ function build(){
   const tn=el('text',{x:12,y:-r0+22,'font-size':14,'font-weight':'600','text-anchor':'middle','dominant-baseline':'central',style:'fill:#1f5fbf'});tn.textContent='N';needle.appendChild(tn);
   const ts=el('text',{x:12,y:r0-22,'font-size':14,'font-weight':'600','text-anchor':'middle','dominant-baseline':'central',style:'fill:#c1341f'});ts.textContent='S';needle.appendChild(ts);
   needle.appendChild(el('circle',{r:3.5,fill:'#b99552'}));
+  siteG=el('g',{class:'smks'}); disc.appendChild(siteG);   // 盤에 불러온 터의 得水·破水·砂 표시
   hlCell=el('path',{class:'hl',d:''}); disc.appendChild(hlCell);
   hl=el('circle',{class:'hl',r:0,fill:'none'}); disc.appendChild(hl);
   kongG=el('g',{stroke:'#c1341f','stroke-width':3,'stroke-linecap':'round',opacity:.85}); disc.appendChild(kongG);
@@ -431,7 +458,7 @@ function openTab(t,keep){const body=document.body;  // keep: 코드에서 여는
   curTab=t; body.classList.add('open');
   document.querySelectorAll('#tabs button[data-tab],footer .tabbtn').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));
-  if(t==='read') apply(); if(t==='layers') renderLayers(); if(t==='rec') renderRec(); if(t==='set') renderSet(); if(t==='find') $('findIn').focus();
+  if(t==='read') apply(); if(t==='layers') renderLayers(); if(t==='rec') renderRec(); if(t==='site') renderSite(); if(t==='set') renderSet(); if(t==='find') $('findIn').focus();
 }
 function closeDrawer(){document.body.classList.remove('open');document.querySelectorAll('#tabs button[data-tab],footer .tabbtn').forEach(b=>b.classList.remove('on'));}
 document.querySelectorAll('#tabs button[data-tab],footer .tabbtn').forEach(b=>b.addEventListener('click',()=>openTab(b.dataset.tab)));
@@ -493,7 +520,7 @@ function normRec(r){ // 옛 기록(번호 없음)·외부 기록을 v2 형태로
   if(r.decl!=null&&isFinite(+r.decl))o.decl=+r.decl; if(r.sensor!=null)o.sensor=!!r.sensor; return o;}
 let REC=[]; try{REC=JSON.parse(localStorage.getItem(REC_KEY)||'[]').map(normRec).filter(Boolean);}catch(e){}
 function persistRec(){try{localStorage.setItem(REC_KEY,JSON.stringify(REC));}catch(e){}}
-function saveRec(){persistRec();scheduleSync();}
+function saveRec(){persistRec();scheduleSync();drawSiteMarks();}
 const liveRec=()=>REC.filter(r=>!r.del);
 const sigOf=list=>list.map(r=>r.id+':'+r.m+':'+(r.del?1:0)).sort().join(',');
 // 병합. 돌려주는 값: 새로 들어온 수, 갱신된 수, 삭제가 반영된 수, 바뀌었는지
@@ -511,7 +538,8 @@ function armed(b,label){if(b.dataset.armed){clearTimeout(+b.dataset.t);delete b.
   b.dataset.orig=b.textContent;b.dataset.armed='1';b.textContent=label;b.classList.add('danger');
   b.dataset.t=setTimeout(()=>{if(b.dataset.armed){delete b.dataset.armed;b.textContent=b.dataset.orig;b.classList.remove('danger');}},3000);return false;}
 let siteFilter='';
-function renderRec(){const ul=$('recList'); ul.innerHTML=''; $('cGps').checked=S.gps; renderSyncLine(); if(document.activeElement!==$('siteIn'))$('siteIn').value=S.site||'';
+function renderRec(){drawSiteMarks();if(curTab==='site'&&document.body.classList.contains('open'))renderSite();   // 터 화면이 열려 있으면 같이 갱신
+  const ul=$('recList'); ul.innerHTML=''; $('cGps').checked=S.gps; renderSyncLine(); if(document.activeElement!==$('siteIn'))$('siteIn').value=S.site||'';
   const all=liveRec(); const sites=[...new Set(all.map(r=>r.site).filter(Boolean))].sort(); const sel=$('siteSel'); if(!sites.includes(siteFilter))siteFilter='';
   sel.innerHTML='<option value="">전체</option>'+sites.map(x=>`<option${x===siteFilter?' selected':''}>${x.replace(/</g,'&lt;')}</option>`).join(''); sel.style.display=sites.length?'':'none';
   const rows=siteFilter?all.filter(r=>r.site===siteFilter):all; $('recCount').textContent=rows.length?`${rows.length}건`:'';
@@ -526,14 +554,15 @@ function renderRec(){const ul=$('recList'); ul.innerHTML=''; $('cGps').checked=S
 }
 $('cGps').addEventListener('change',e=>{S.gps=e.target.checked;saveS();});
 $('siteSel').addEventListener('change',e=>{siteFilter=e.target.value;renderRec();});
+$('bRecSite').addEventListener('click',()=>{if(siteFilter)stSite=siteFilter;openTab('site',true);});
 $('siteIn').addEventListener('change',e=>{S.site=e.target.value.trim();saveS();});
 $('bSave').addEventListener('click',()=>{const az=azNow(); const now=Date.now(); S.site=$('siteIn').value.trim();saveS();const r={id:rid(),t:now,m:now,dev:devName(),kind:'坐向',site:S.site,az,za:mod(az+180),memo:$('memoIn').value.trim(),decl:S.declOn?S.decl:null,sensor,del:false};
   const done=()=>{REC.push(r);saveRec();$('memoIn').value='';renderRec();msg.textContent='저장했습니다.';};
   if(S.gps&&navigator.geolocation){msg.textContent='위치를 읽는 중…';navigator.geolocation.getCurrentPosition(p=>{r.lat=p.coords.latitude;r.lon=p.coords.longitude;r.acc=p.coords.accuracy;done();},()=>{msg.textContent='위치를 읽지 못해 방위만 저장합니다.';done();},{timeout:8000,enableHighAccuracy:true});}
   else done();});
-function csvText(){const esc=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
+function csvText(list=liveRec()){const esc=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
   const rows=[['일시','종류','터','方位°','坐°','坐向(正針)','坐分金','向分金','中針向','縫針向','雙山','메모','위도','경도','磁偏角보정','센서','기기','번호'].map(esc).join(',')];
-  for(const r of liveRec())rows.push([fmtT(r.t),r.kind,r.site,r.az.toFixed(1),r.za.toFixed(1),r.kind==='坐向'?`${valAt(3,r.za)}坐${valAt(3,r.az)}向`:'',valAt(6,r.za),valAt(6,r.az),valAt(12,r.az),valAt(20,r.az),ssOf(r.az),r.memo,r.lat??'',r.lon??'',r.decl??'',r.sensor?'나침반':'수동',r.dev,r.id].map(esc).join(','));
+  for(const r of list)rows.push([fmtT(r.t),r.kind,r.site,r.az.toFixed(1),r.za.toFixed(1),r.kind==='坐向'?`${valAt(3,r.za)}坐${valAt(3,r.az)}向`:'',valAt(6,r.za),valAt(6,r.az),valAt(12,r.az),valAt(20,r.az),ssOf(r.az),r.memo,r.lat??'',r.lon??'',r.decl??'',r.sensor?'나침반':'수동',r.dev,r.id].map(esc).join(','));
   return '﻿'+rows.join('\r\n');}
 $('bCsv').addEventListener('click',()=>{if(!liveRec().length){msg.textContent='저장된 기록이 없습니다.';return;}offerFile('nagyeong-'+new Date().toISOString().slice(0,10)+'.csv',csvText());});
 function openExternal(u){if(NATIVE&&NATIVE.openExternal){NATIVE.openExternal(u);return;}window.open(u,'_blank');}
@@ -546,15 +575,15 @@ async function offerFile(name,text){
   catch(e){prompt('복사하십시오',text);}}
 
 // ---- A. 파일로 옮기기 ----
-function exportObj(){return {app:'nakyeng',ver:2,dev:devName(),exported:Date.now(),records:REC};}
+function exportObj(list=REC,site){const o={app:'nakyeng',ver:2,dev:devName(),exported:Date.now()};if(site)o.site=site;o.records=list;return o;}   // site: 터 하나만 담을 때 그 이름
 function exportName(){return 'nakyeng-records-'+new Date().toISOString().slice(0,10)+'.json';}
 $('bExport').addEventListener('click',()=>offerFile(exportName(),JSON.stringify(exportObj(),null,1)));
 $('bImport').addEventListener('click',()=>$('fileIn').click());
 $('fileIn').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(f)await importText(await f.text(),'파일 '+f.name);});
-$('bShare').addEventListener('click',shareRecords);
-async function shareRecords(){const text=JSON.stringify(exportObj()),name=exportName();
+$('bShare').addEventListener('click',()=>shareRecords());
+async function shareRecords(list=REC,name=exportName(),title='나경 기록',site){const text=JSON.stringify(exportObj(list,site));
   if(NATIVE&&NATIVE.shareText){NATIVE.shareText(name,text);return;}
-  try{if(navigator.canShare){const f=new File([text],name,{type:'application/json'});if(navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'나경 기록'});msg.textContent='보냈습니다.';return;}}}
+  try{if(navigator.canShare){const f=new File([text],name,{type:'application/json'});if(navigator.canShare({files:[f]})){await navigator.share({files:[f],title});msg.textContent='보냈습니다.';return;}}}
   catch(e){if(e&&e.name==='AbortError')return;}
   await offerFile(name,text);msg.textContent='이 기기에는 보내기 창이 없어 파일로 저장했습니다. 메일·메신저에 붙여 보내십시오.';}
 // 끌어다 놓기(PC)
@@ -577,7 +606,7 @@ async function importText(text,from){text=String(text||'').trim();if(!text){msg.
     if(text.startsWith('NKQ|')){await takeQrFrame(text);return;}
     const lm=text.match(/[#&]rec=([^&\s]+)/); if(lm){const list=unpackRecords(await inflate(lm[1]));confirmImport(list,from||'링크');return;}
     if(/^https?:\/\//.test(text)){msg.textContent='기록이 담긴 링크가 아닙니다.';return;}
-    if(text[0]==='{'||text[0]==='['){const j=JSON.parse(text);const list=Array.isArray(j)?j:(j.records||j.rec);if(!Array.isArray(list))throw new Error('기록 형식이 아닙니다');confirmImport(list,from||'JSON');return;}
+    if(text[0]==='{'||text[0]==='['){const j=JSON.parse(text);const list=Array.isArray(j)?j:(j.records||j.rec);if(!Array.isArray(list))throw new Error('기록 형식이 아닙니다');confirmImport(list,(from||'JSON')+(j.site?` (터 "${j.site}")`:''));return;}
     if(/^"?일시/.test(text)){confirmImport(parseCsv(text),from||'CSV');return;}
     throw new Error('알 수 없는 형식');
   }catch(e){msg.textContent='가져오지 못했습니다: '+e.message;}}
@@ -597,11 +626,12 @@ async function inflate(s){const kind=s[0],u=unb64u(s.slice(1));if(kind==='j')ret
   if(typeof DecompressionStream==='undefined')throw new Error('이 브라우저는 압축 링크를 풀지 못합니다. 파일이나 붙여넣기를 쓰십시오');
   const ds=new DecompressionStream('deflate-raw');const w=ds.writable.getWriter();w.write(u);w.close();return new TextDecoder().decode(await new Response(ds.readable).arrayBuffer());}
 function linkBase(){return /^https?:$/.test(location.protocol)&&!/claude\.ai$/.test(location.hostname)?location.href.replace(/[#?].*$/,''):PUBLIC_URL;}
-async function recordsLink(){if(!REC.length)throw new Error('저장된 기록이 없습니다');return linkBase()+'#rec='+await deflate(packRecords(REC));}
-$('bRecLink').addEventListener('click',async()=>{try{const u=await recordsLink();
+async function recordsLink(list=REC){if(!list.length)throw new Error('저장된 기록이 없습니다');return linkBase()+'#rec='+await deflate(packRecords(list));}
+async function copyRecordsLink(list,what){try{const u=await recordsLink(list);
   if(NATIVE&&NATIVE.copyText){NATIVE.copyText(u);}else{try{await navigator.clipboard.writeText(u);}catch(e){prompt('이 링크를 복사하십시오',u);}}
-  msg.textContent=`기록 링크를 복사했습니다 (${u.length.toLocaleString()}자). 메신저·메일로 보내면 받는 쪽에서 열자마자 가져오기 창이 뜹니다.`+(u.length>6000?' 링크가 길어 잘릴 수 있으니 그럴 때는 파일이나 QR을 쓰십시오.':'');}
-  catch(e){msg.textContent=e.message;}});
+  msg.textContent=`${what} 링크를 복사했습니다 (${u.length.toLocaleString()}자). 메신저·메일로 보내면 받는 쪽에서 열자마자 가져오기 창이 뜹니다.`+(u.length>6000?' 링크가 길어 잘릴 수 있으니 그럴 때는 파일이나 QR을 쓰십시오.':'');}
+  catch(e){msg.textContent=e.message;}}
+$('bRecLink').addEventListener('click',()=>copyRecordsLink(REC,'기록'));
 // QR 보이기: 여러 장으로 나눠 자동으로 넘김. 조각 형식 NKQ|번호|전체|내용
 const QR_CHUNK=500;
 function loadScript(src){return new Promise((ok,no)=>{if(document.querySelector(`script[data-src="${src}"]`)){ok();return;}const s=document.createElement('script');s.src=src;s.dataset.src=src;s.onload=ok;s.onerror=()=>no(new Error(src+'를 읽지 못했습니다'));document.head.appendChild(s);});}
@@ -613,8 +643,9 @@ async function showQrFrames(frames,title,note){await loadScript('vendor/qrcode.m
   body.querySelector('#qrPrev').addEventListener('click',()=>{i=(i-1+frames.length)%frames.length;show();});body.querySelector('#qrNext').addEventListener('click',()=>{i=(i+1)%frames.length;show();});
   const auto=body.querySelector('#qrAuto');const toggle=()=>{if(timer){clearInterval(timer);timer=null;auto.classList.remove('on');}else{timer=setInterval(()=>{i=(i+1)%frames.length;show();},1500);auto.classList.add('on');}};auto.addEventListener('click',toggle);
   showModal(title,body,[{label:'닫기',fn:()=>{if(timer)clearInterval(timer);closeModal();}}]);show();if(frames.length>1)toggle();}
-$('bQrShow').addEventListener('click',async()=>{try{if(!REC.length)throw new Error('저장된 기록이 없습니다');const packed=await deflate(packRecords(REC));const n=Math.ceil(packed.length/QR_CHUNK);const frames=[];for(let k=0;k<n;k++)frames.push(`NKQ|${k+1}|${n}|${packed.slice(k*QR_CHUNK,(k+1)*QR_CHUNK)}`);
-  await showQrFrames(frames,'기록 QR',n>1?`${n}장으로 나뉘어 있습니다. 다른 기기의 "QR 읽기"로 카메라를 대고 있으면 차례로 읽힙니다.`:'다른 기기의 "QR 읽기"로 읽으십시오.');}catch(e){msg.textContent=e.message;}});
+async function showRecordsQr(list=REC,title='기록 QR'){try{if(!list.length)throw new Error('저장된 기록이 없습니다');const packed=await deflate(packRecords(list));const n=Math.ceil(packed.length/QR_CHUNK);const frames=[];for(let k=0;k<n;k++)frames.push(`NKQ|${k+1}|${n}|${packed.slice(k*QR_CHUNK,(k+1)*QR_CHUNK)}`);
+  await showQrFrames(frames,title,n>1?`${n}장으로 나뉘어 있습니다. 다른 기기의 "QR 읽기"로 카메라를 대고 있으면 차례로 읽힙니다.`:'다른 기기의 "QR 읽기"로 읽으십시오.');}catch(e){msg.textContent=e.message;}}
+$('bQrShow').addEventListener('click',()=>showRecordsQr());
 // QR 읽기: 카메라 → 조각 모음 → 가져오기. 카메라가 없으면 사진 파일로
 let qrParts=null;
 async function takeQrFrame(text){const m=text.match(/^NKQ\|(\d+)\|(\d+)\|([\s\S]*)$/);if(!m)return false;const i=+m[1],n=+m[2];
@@ -747,8 +778,8 @@ async function openAim(){if(aimOn)return;if(!hasSensors()){msg.textContent='조�
   aimDraw();}
 function closeAim(){if(!aimOn)return;aimOn=false;$('aim').classList.remove('on');cancelAnimationFrame(aimRAF);if(NATIVE_COMPASS)nativeCompass(false);window.removeEventListener('deviceorientationabsolute',onOriAim,true);window.removeEventListener('deviceorientation',onOriAim,true);
   if(aimStream){aimStream.getTracks().forEach(t=>t.stop());aimStream=null;}if(!sensor)keepAwake(false);}
-function kindNote(r){const az=r.az;switch(r.kind){
-  case '得水':{const g=curGuk();return `縫針 ${valAt(20,az)} · 雙山 ${ssOf(az)}`+(g?` · ${g.name.replace('十二長生 ','')} ${valAt(g.n,az)||''}`:'');}
+function kindNote(r,gL){const az=r.az;switch(r.kind){   // gL: 터의 破水로 정한 十二長生 층(없으면 지금 보이는 局)
+  case '得水':{const g=gL===undefined?curGuk():gL;return `縫針 ${valAt(20,az)} · 雙山 ${ssOf(az)}`+(g?` · ${g.name.replace('十二長生 ','')} ${valAt(g.n,az)||''}`:'');}
   case '破水':{const g=gukOfAz(az);return `縫針 ${valAt(20,az)} · 雙山 ${ssOf(az)} → ${g||'局 없음(旺·生方)'}`;}
   case '砂':return `中針 ${valAt(12,az)} · ${valAt(13,az)}`;
   default:return `<b>${valAt(3,r.za)}坐${valAt(3,az)}向</b> · 分金 ${valAt(6,r.za)||'空'}`;}}
@@ -759,7 +790,7 @@ function aimSave(kind){const h=aimTrue();if(h===null){$('aimMsg').textContent='�
     if(kind==='坐向'){setAz(h);note+=`${valAt(3,r.za)}坐${valAt(3,h)}向`;}
     else if(kind==='破水'){const g=gukOfAz(h);const L=g&&LAYERS.find(l=>JG(l)&&l.name.endsWith(g));if(L)setGuk(L.n);note+=kindNote(r);}
     else{note+=kindNote(r).replace(/<[^>]+>/g,'');if(kind==='得水'&&!curGuk())note+=' · 破水를 먼저 재면 局이 정해집니다';}
-    $('aimMsg').textContent=note;msg.textContent=note;if(document.body.classList.contains('open')&&curTab==='rec')renderRec();};
+    $('aimMsg').textContent=note;msg.textContent=note;if(document.body.classList.contains('open')&&(curTab==='rec'||curTab==='site'))renderRec();};
   if(S.gps&&navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>{r.lat=p.coords.latitude;r.lon=p.coords.longitude;r.acc=p.coords.accuracy;done();},()=>done(),{timeout:6000,enableHighAccuracy:true});else done();
   aimNeedle=KINDS[kind].n;$('aimNeedle').value=String(aimNeedle);}
 $('bAim').addEventListener('click',openAim);$('aimClose').addEventListener('click',closeAim);
@@ -769,6 +800,103 @@ document.querySelectorAll('#aim button[data-kind]').forEach(b=>b.addEventListene
 if(!hasSensors())$('bAim').style.display='none';
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&aimOn)closeAim();});
 
+
+// ===== 터: 같은 터에서 잰 기록을 묶어 방위도로 보고, 터 단위로 보내며, 盤에 불러온다 =====
+// 터는 기록의 site(터 이름)로 묶는다. 별도 개체를 두지 않으므로 동기화·파일·링크·QR 형식은 그대로이고, 옛 기록도 그대로 묶인다.
+const hEsc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MK={'得水':{c:'#2a7fb8',ch:'得'},'破水':{c:'#8a3fa0',ch:'破'},'砂':{c:'#4f8a3a',ch:'砂'}};   // 방위도·盤 둘레 표시의 색과 글자
+const kIdx=k=>Math.max(0,Object.keys(KINDS).indexOf(k));
+let stSite='';   // 터 탭에서 고른 터
+function siteNames(){const s=new Set(liveRec().map(r=>r.site).filter(Boolean));if(S.site)s.add(S.site);return [...s].sort((a,b)=>a.localeCompare(b,'ko'));}   // 지금 재는 터는 기록이 없어도 보인다
+function siteRecs(name){return liveRec().filter(r=>r.site===name);}
+function siteInfo(name){const rs=siteRecs(name);const of=k=>rs.filter(r=>r.kind===k);const zs=of('坐向'),ps=of('破水');const zv=zs[zs.length-1]||null,pa=ps[ps.length-1]||null;   // 坐向·破水가 여럿이면 최근 것
+  const guk=pa?gukOfAz(pa.az):null;const gL=guk?LAYERS.find(l=>JG(l)&&l.name.endsWith(guk)):null;
+  return {name,rs,zs,zv,ps,pa,guk,gL,ds:of('得水'),ss:of('砂')};}
+function kindShort(r,info){const g=info&&info.gL;switch(r.kind){   // 방위도 요약: 坐向은 正針, 得水·破水는 縫針 雙山(得水는 터의 局에 따른 長生 단계), 砂는 中針
+  case '得水':return ssOf(r.az)+(g&&valAt(g.n,r.az)?' '+valAt(g.n,r.az):'');
+  case '破水':return ssOf(r.az)+(gukOfAz(r.az)?' → '+gukOfAz(r.az):'');
+  case '砂':return valAt(12,r.az);
+  default:return `${valAt(3,r.za)}坐${valAt(3,r.az)}向`;}}
+function touchRecs(list,fn){const now=Date.now(),d=devName();for(const r of list){fn(r);r.m=now;r.dev=d;}saveRec();}   // 고친 기록은 수정 시각을 올려 다른 기기에도 전해지게 한다
+function renderSite(){const names=siteNames();const sel=$('stSel');
+  if(!names.includes(stSite))stSite=names.includes(S.site)?S.site:(names[0]||'');
+  sel.innerHTML=names.map(n=>`<option value="${hEsc(n)}"${n===stSite?' selected':''}>${hEsc(n)} (${siteRecs(n).length})</option>`).join('');sel.style.display=names.length?'':'none';
+  $('stCur').textContent=S.site?`지금 재는 터: ${S.site}`:'';
+  const box=$('stBox');if(!stSite){box.style.display='none';$('stEmpty').style.display='';return;}box.style.display='';$('stEmpty').style.display='none';
+  const info=siteInfo(stSite);drawSiteMap($('stMap'),info);
+  $('bSiteUp').classList.toggle('on',!!S.siteUp);$('bSiteHere').classList.toggle('on',S.site===stSite);$('bSiteLoad').classList.toggle('on',S.shown===stSite);
+  const line=(k,list)=>list.length?`<div><span class="kd k-${kIdx(k)}">${k}</span>${list.map(r=>`<b>${hEsc(kindShort(r,info))}</b> ${r.az.toFixed(1)}°${r.memo?' '+hEsc(r.memo):''}`).join(' · ')}</div>`:'';
+  $('stSum').innerHTML=(info.zv?line('坐向',[info.zv])+(info.zs.length>1?`<div class="note">坐向 ${info.zs.length}건 가운데 최근 것을 축으로 씁니다.</div>`:''):'<div class="note">坐向 기록이 없어 축을 그리지 못했습니다. 조준이나 기록 탭에서 坐向을 저장하십시오.</div>')
+    +line('得水',info.ds)+line('破水',info.ps)+line('砂',info.ss)+(info.guk?`<div class="note">破水 ${ssOf(info.pa.az)} → 十二長生 ${info.guk}</div>`:'');
+  $('stCount').textContent=info.rs.length?`${info.rs.length}건`:'';const ul=$('stList');ul.innerHTML='';
+  if(!info.rs.length)ul.innerHTML='<li><span class="note">이 터에 기록이 없습니다. 조준이나 기록 탭에서 저장하면 여기에 묶입니다.</span></li>';
+  info.rs.slice().reverse().forEach(r=>{const li=document.createElement('li');
+    li.innerHTML=`<div class="g"><span class="kd k-${kIdx(r.kind)}">${r.kind}</span>${kindNote(r,info.gL)} · ${r.az.toFixed(1)}°${r.memo?' · '+hEsc(r.memo):''}<small>${fmtT(r.t)}${r.dev?' · '+hEsc(r.dev):''}</small></div><button class="sm">불러오기</button><button class="sm">빼기</button>`;
+    const [bl,bo]=li.querySelectorAll('button');bl.addEventListener('click',()=>{if(sensor)stopSensor();setAz(r.az);openTab('read',true);});
+    bo.addEventListener('click',()=>{const name=stSite;touchRecs([r],x=>{x.site='';});renderSite();msg.textContent=`기록을 터 "${name}"에서 뺐습니다. 기록 자체는 남아 있습니다.`;});ul.appendChild(li);});}
+// 방위도: 북이 위(向 위로를 켜면 向이 위). 24山(正針) 고리 안에 坐向 축을 긋고 得水·破水·砂를 둘레에 찍는다
+function drawSiteMap(svg,info){svg.innerHTML='';const RR=150,up=S.siteUp&&info.zv?info.zv.az:0;
+  const root=el('g',{transform:`rotate(${-up})`});svg.appendChild(root);const upright=(x,y)=>`translate(${x} ${y}) rotate(${up})`;   // 글자는 돌려도 바로 서게
+  root.appendChild(el('circle',{r:RR+4,fill:'#b99552'}));root.appendChild(el('circle',{r:RR,fill:'#f1e7cf',stroke:'#231c18','stroke-width':1.2}));
+  const ring=el('g',{class:'ring'});root.appendChild(ring);const L=byN(3);
+  ring.appendChild(el('circle',{r:RR-22,fill:'none',stroke:'#231c18','stroke-width':.8}));
+  for(const [a0,w,t] of L.cells){const [x0,y0]=pol(RR-22,a0),[x1,y1]=pol(RR,a0);ring.appendChild(el('line',{x1:x0,y1:y0,x2:x1,y2:y1,stroke:'#231c18','stroke-width':.6}));
+    const tx=el('text',{transform:`rotate(${a0+w/2}) translate(0 ${-(RR-11)})`,'text-anchor':'middle','dominant-baseline':'central','font-size':12,'font-weight':['子','午','卯','酉'].includes(t)?'600':'400',style:'fill:#231c18'});tx.textContent=t;ring.appendChild(tx);}
+  const nT=el('text',{transform:upright(0,-(RR+13)),'text-anchor':'middle','dominant-baseline':'central','font-size':10,'font-weight':600,style:'fill:#b99552'});nT.textContent='N';root.appendChild(nT);
+  const pill=(a,rad,txt,c,fs=11.5)=>{const [x,y]=pol(rad,a);const g=el('g',{transform:upright(x,y)});const w=[...txt].length*fs*0.95+10;g.appendChild(el('rect',{x:-w/2,y:-9,width:w,height:18,rx:9,fill:c}));
+    const t=el('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':fs,'font-weight':600,style:'fill:#fff'});t.textContent=txt;g.appendChild(t);root.appendChild(g);return g;};
+  const marks=[...info.ds,...info.ps,...info.ss];
+  for(const r of marks){const [x,y]=pol(RR-32,r.az);root.appendChild(el('line',{x1:0,y1:0,x2:x,y2:y,stroke:MK[r.kind].c,'stroke-width':1,'stroke-dasharray':'3 3',opacity:.8}));}
+  if(info.zv){const az=info.zv.az,za=info.zv.za;const [vx,vy]=pol(RR-30,az),[zx,zy]=pol(RR-30,za);
+    root.appendChild(el('line',{class:'axis',x1:0,y1:0,x2:zx,y2:zy,stroke:'#1f5fbf','stroke-width':2.4}));root.appendChild(el('line',{class:'axis',x1:0,y1:0,x2:vx,y2:vy,stroke:'#c1341f','stroke-width':2.4}));
+    const p1=pol(RR-44,az+3.5),p2=pol(RR-44,az-3.5);root.appendChild(el('polygon',{points:`${vx},${vy} ${p1[0]},${p1[1]} ${p2[0]},${p2[1]}`,fill:'#c1341f'}));}
+  root.appendChild(el('circle',{r:4,fill:'#b99552',stroke:'#231c18','stroke-width':.8}));
+  for(const r of marks){const m=MK[r.kind];const [x,y]=pol(RR-32,r.az),[lx,ly]=pol(RR-52,r.az);const g=el('g',{class:'mk','data-kind':r.kind});
+    g.appendChild(el('circle',{cx:x,cy:y,r:9,fill:m.c,stroke:'#fff','stroke-width':1.2}));
+    const t=el('text',{transform:upright(x,y),'text-anchor':'middle','dominant-baseline':'central','font-size':11,'font-weight':600,style:'fill:#fff'});t.textContent=m.ch;g.appendChild(t);
+    const v=el('text',{transform:upright(lx,ly),'text-anchor':'middle','dominant-baseline':'central','font-size':10,style:`fill:${m.c}`});v.textContent=kindShort(r,info).split(' ')[0];g.appendChild(v);
+    const ti=el('title',{});ti.textContent=`${r.kind} ${r.az.toFixed(1)}° · ${kindShort(r,info)}${r.memo?' · '+r.memo:''}`;g.appendChild(ti);root.appendChild(g);}
+  if(info.zv){pill(info.zv.az,RR-58,'向 '+valAt(3,info.zv.az),'#c1341f').classList.add('axis-lab');pill(info.zv.za,RR-58,'坐 '+valAt(3,info.zv.za),'#1f5fbf').classList.add('axis-lab');}}
+// 盤에 불러온 터: 得水·破水·砂를 盤 둘레에, 坐·向 방위를 작은 세모로 표시. 盤과 함께 돈다
+function drawSiteMarks(){if(!siteG)return;siteG.innerHTML='';const chip=$('siteChip');const name=S.shown;const info=name?siteInfo(name):null;
+  if(!info||!info.rs.length){chip.classList.remove('on');return;}
+  chip.classList.add('on');chip.querySelector('span').textContent=`터 ${name}`+(info.zv?` · ${valAt(3,info.zv.za)}坐${valAt(3,info.zv.az)}向`:'');
+  if(info.zv)for(const [a,c] of [[info.zv.az,'#c1341f'],[info.zv.za,'#1f5fbf']]){const p0=pol(R+3,a),p1=pol(R+32,a+2.2),p2=pol(R+32,a-2.2);siteG.appendChild(el('polygon',{points:`${p0[0]},${p0[1]} ${p1[0]},${p1[1]} ${p2[0]},${p2[1]}`,fill:c,stroke:'#f1e7cf','stroke-width':1.5}));}
+  for(const r of [...info.ds,...info.ps,...info.ss]){const m=MK[r.kind];const g=el('g',{class:'smk','data-kind':r.kind,transform:`rotate(${r.az})`});   // 盤 테두리(R+40이 viewBox 끝) 위에 얹는다
+    g.appendChild(el('circle',{cy:-(R+22),r:17,fill:m.c,stroke:'#f1e7cf','stroke-width':2}));
+    const t=el('text',{y:-(R+22),'text-anchor':'middle','dominant-baseline':'central','font-size':21,'font-weight':600,style:'fill:#fff'});t.textContent=m.ch;g.appendChild(t);
+    const ti=el('title',{});ti.textContent=`${r.kind} ${r.az.toFixed(1)}° · ${kindShort(r,info)}`;g.appendChild(ti);siteG.appendChild(g);}}
+function loadSite(name){const info=siteInfo(name);if(!info.rs.length){msg.textContent='이 터에는 기록이 없습니다.';return;}
+  if(info.zv){if(sensor)stopSensor();setAz(info.zv.az);}
+  if(info.gL)setGuk(info.gL.n);
+  S.shown=name;saveS();drawSiteMarks();hlCell.setAttribute('d','');
+  msg.textContent=`터 "${name}"를 盤에 불러왔습니다. `+(info.zv?`${valAt(3,info.zv.za)}坐${valAt(3,info.zv.az)}向(${info.zv.az.toFixed(1)}°)으로 돌렸고, `:'坐向 기록이 없어 盤은 그대로 두고, ')+`得水 ${info.ds.length}·破水 ${info.ps.length}·砂 ${info.ss.length}건을 盤 둘레에 표시했습니다.`+(info.guk?` 十二長生은 ${info.guk}.`:'')+' 둘레의 표시를 짚으면 값이 보입니다.';
+  closeDrawer();}
+function askText(title,label,init,fn){const body=document.createElement('div');body.innerHTML=`<div class="row"><input type="text" id="askIn" style="flex:1" placeholder="${hEsc(label)}"></div>`;const inp=body.querySelector('#askIn');inp.value=init||'';
+  const ok=()=>{const v=inp.value.trim();if(!v){inp.focus();return;}closeModal();fn(v);};inp.addEventListener('keydown',e=>{if(e.key==='Enter')ok();});
+  showModal(title,body,[{label:'확인',cls:'on',fn:ok},{label:'취소',fn:closeModal}]);setTimeout(()=>inp.focus(),50);}
+$('stSel').addEventListener('change',e=>{stSite=e.target.value;renderSite();});
+$('bSiteNew').addEventListener('click',()=>askText('새 터','터 이름 (예: 선영, 새집 터)','',name=>{S.site=name;saveS();stSite=name;renderSite();
+  msg.textContent=`새 터 "${name}"를 만들었습니다. 지금부터 조준·기록 저장이 이 터에 묶입니다.`;}));
+$('bSiteHere').addEventListener('click',()=>{S.site=stSite;saveS();renderSite();
+  if(hasSensors()&&!aimOn)openAim();else msg.textContent=`지금부터 저장하는 기록은 터 "${stSite}"에 묶입니다. 기록 탭의 "현재 방위 저장"이나 조준을 쓰십시오.`;});
+$('bSiteLoad').addEventListener('click',()=>loadSite(stSite));
+$('bSiteUp').addEventListener('click',()=>{S.siteUp=!S.siteUp;saveS();renderSite();});
+$('bSiteRename').addEventListener('click',()=>askText('터 이름 바꾸기','새 이름',stSite,name=>{if(name===stSite)return;const old=stSite;const rs=REC.filter(r=>r.site===old);   // 지움 표시도 같이 옮겨 삭제 전파가 끊기지 않게
+  touchRecs(rs,r=>{r.site=name;});if(S.site===old)S.site=name;if(S.shown===old)S.shown=name;saveS();stSite=name;renderSite();drawSiteMarks();msg.textContent=`터 "${old}"를 "${name}"로 바꿨습니다 (${rs.filter(r=>!r.del).length}건).`;}));
+$('bSiteAdd').addEventListener('click',()=>{const others=liveRec().filter(r=>r.site!==stSite);if(!others.length){msg.textContent='넣을 수 있는 다른 기록이 없습니다.';return;}
+  const body=document.createElement('div');body.innerHTML=`<p class="note">터 "${hEsc(stSite)}"에 넣을 기록을 고르십시오.</p><ul class="ls" id="addList"></ul>`;const ul=body.querySelector('#addList');
+  others.slice().reverse().forEach(r=>{const li=document.createElement('li');li.innerHTML=`<label class="chk"><input type="checkbox"><span><span class="kd k-${kIdx(r.kind)}">${r.kind}</span>${r.az.toFixed(1)}°${r.memo?' · '+hEsc(r.memo):''}<small>${r.site?'터 '+hEsc(r.site):'터 없음'} · ${fmtT(r.t)}</small></span></label>`;li.querySelector('input').__r=r;ul.appendChild(li);});
+  showModal('기록 넣기',body,[{label:'넣기',cls:'on',fn:()=>{const picked=[...ul.querySelectorAll('input:checked')].map(i=>i.__r);closeModal();if(!picked.length)return;const name=stSite;touchRecs(picked,r=>{r.site=name;});renderSite();msg.textContent=`기록 ${picked.length}건을 터 "${name}"에 넣었습니다.`;}},{label:'취소',fn:closeModal}]);});
+// 터 하나만 보내기. 지움 표시도 함께 보내 받는 쪽에 삭제가 전해지게 한다
+function siteFile(name){return 'nakyeng-'+String(name).replace(/[\\/:*?"<>|\s]+/g,'_')+'-'+new Date().toISOString().slice(0,10);}
+const siteAll=()=>REC.filter(r=>r.site===stSite);
+$('bSiteShare').addEventListener('click',()=>shareRecords(siteAll(),siteFile(stSite)+'.json','나경 터 '+stSite,stSite));
+$('bSiteExport').addEventListener('click',()=>offerFile(siteFile(stSite)+'.json',JSON.stringify(exportObj(siteAll(),stSite),null,1)));
+$('bSiteLink').addEventListener('click',()=>copyRecordsLink(siteAll(),`터 "${stSite}"`));
+$('bSiteQr').addEventListener('click',()=>showRecordsQr(siteAll(),`터 "${stSite}" QR`));
+$('bSiteCsv').addEventListener('click',()=>{const rs=siteRecs(stSite);if(!rs.length){msg.textContent='이 터에 기록이 없습니다.';return;}offerFile(siteFile(stSite)+'.csv',csvText(rs));});
+$('siteChip').querySelector('button').addEventListener('click',()=>{S.shown='';saveS();drawSiteMarks();msg.textContent='盤의 터 표시를 지웠습니다.';});
 
 // ===== 새 버전 확인·자동 업데이트 =====
 // 웹·설치형 웹앱: 서비스 워커가 새 파일을 받으면 새로고침을 권한다. 앱(안드로이드·데스크톱·웹): 하루 한 번 GitHub 릴리스를 확인해 안내한다.
@@ -818,7 +946,8 @@ $('bClearStore').addEventListener('click',()=>{if(!armed($('bClearStore'),'정�
 const ptrs=new Map(); let start=null, moved=0, spaceDown=false;
 function svgPt(e){const r=stage.getBoundingClientRect();const s=2*VB/Math.min(r.width,r.height);
   return [(e.clientX-r.left-r.width/2)*s,(e.clientY-r.top-r.height/2)*s];}
-stage.addEventListener('pointerdown',e=>{stage.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,svgPt(e));moved=0;
+stage.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('#siteChip'))return;   // 터 칩은 盤 조작에서 뺀다(포인터를 잡으면 단추 click이 죽음)
+  stage.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,svgPt(e));moved=0;
   if(ptrs.size===1){const [x,y]=svgPt(e);start={x,y,rot,px,py,ang:Math.atan2(y-py,x-px),pan:(e.pointerType==='mouse'&&(e.button===2||spaceDown))};if(start.pan)stage.style.cursor='grabbing';}
   if(ptrs.size===2){const [a,b]=[...ptrs.values()];start={d:Math.hypot(a[0]-b[0],a[1]-b[1]),zoom,px,py,cx:(a[0]+b[0])/2,cy:(a[1]+b[1])/2};}
 });
@@ -873,8 +1002,12 @@ document.querySelectorAll('footer button,#tabs button').forEach(b=>b.addEventLis
 // ---- 짚기 ----
 let tipT;
 function tap(p){const dx=(p[0]-px)/zoom,dy=(p[1]-py)/zoom;const r=Math.hypot(dx,dy);
-  const L=LAYERS.find(l=>r>=l.r0&&r<l.r1&&!S.hidden.includes(l.n)); if(!L){hl.setAttribute('r',0);hlCell.setAttribute('d','');tip.classList.remove('on');return;}
+  const L=LAYERS.find(l=>r>=l.r0&&r<l.r1&&!S.hidden.includes(l.n));
   const az=mod(Math.atan2(dx,-dy)*180/Math.PI-rot);
+  if(!L){hl.setAttribute('r',0);hlCell.setAttribute('d','');tip.classList.remove('on');
+    if(r>R&&S.shown){const info=siteInfo(S.shown);const near=[...info.ds,...info.ps,...info.ss].find(x=>Math.abs(mod(x.az-az+180)-180)<5);   // 盤 둘레의 得水·破水·砂 표시
+      if(near){tip.innerHTML=`터 ${hEsc(S.shown)} · <b>${near.kind}</b> ${near.az.toFixed(1)}° · ${kindNote(near,info.gL)}${near.memo?' · '+hEsc(near.memo):''}`;tip.classList.add('on');clearTimeout(tipT);tipT=setTimeout(()=>tip.classList.remove('on'),6000);}}
+    return;}
   const c=cellAt(L,az);
   hl.setAttribute('r',(L.r0+L.r1)/2);hl.setAttribute('stroke','#b99552');hl.setAttribute('stroke-width',L.r1-L.r0);hl.setAttribute('fill','none');
   if(c)hlCell.setAttribute('d',wedge(L,c[0],c[1]));
@@ -931,7 +1064,7 @@ async function loadLayers(){
 }
 (async()=>{
   LAYERS=await loadLayers(); if(!LAYERS.length){msg.textContent='층 데이터를 읽지 못했습니다.';return;}
-  build(); $('nLayers').textContent=numCN(ringCount())+'層'; $('zoom').value=zoom; apply();
+  build(); $('nLayers').textContent=numCN(ringCount())+'層'; $('zoom').value=zoom; apply(); drawSiteMarks();
   checkRecHash(); autoCompass(); if(syncOn()&&S.sync.auto)setTimeout(()=>syncNow(false),1500);
   if(!NATIVE&&'serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){try{navigator.serviceWorker.register('sw.js').then(watchSw).catch(()=>{});}catch(e){}}
   if(!S.updChecked||Date.now()-S.updChecked>86400000)setTimeout(()=>checkUpdate(false),5000);

@@ -17,7 +17,7 @@ function appDir() {
 function createWindow() {
   win = new BrowserWindow({
     width: 1200, height: 900, minWidth: 360, minHeight: 480,
-    title: '羅經 · 나경', backgroundColor: '#e8dcc3',
+    title: '鳶魚 羅經 · 연어 나경', backgroundColor: '#e8dcc3',
     autoHideMenuBar: true,
     icon: path.join(__dirname, 'build', 'icon.png'),
     webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, spellcheck: false },
