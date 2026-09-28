@@ -1,0 +1,55 @@
+plugins {
+    id 'com.android.application'
+}
+
+// 버전: 환경 변수 NAKYENG_VERSION(릴리스 태그) → 없으면 저장소 루트의 VERSION 파일
+def appVersion = (System.getenv('NAKYENG_VERSION') ?: rootProject.file('../VERSION').text).trim().replaceFirst(/^v/, '')
+def parts = appVersion.tokenize('.-').take(3).collect { it.isInteger() ? it.toInteger() : 0 }
+while (parts.size() < 3) parts << 0
+def appVersionCode = parts[0] * 10000 + parts[1] * 100 + parts[2]
+
+// 서명: 환경 변수에 키가 있으면 그 키로, 없으면 디버그 키로 서명한다(설치는 되지만 업데이트 때 재설치가 필요할 수 있음)
+def ksPath = System.getenv('NAKYENG_KEYSTORE')
+
+android {
+    namespace 'io.github.kyengilamcoder.nakyeng'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'io.github.kyengilamcoder.nakyeng'
+        minSdk 24
+        targetSdk 35
+        versionCode appVersionCode
+        versionName appVersion
+    }
+
+    signingConfigs {
+        if (ksPath) {
+            release {
+                storeFile file(ksPath)
+                storePassword System.getenv('NAKYENG_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('NAKYENG_KEY_ALIAS')
+                keyPassword System.getenv('NAKYENG_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig ksPath ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+// 저장소 루트의 app/ 웹앱을 assets/www로 복사한 뒤 빌드한다
+def copyWebApp = tasks.register('copyWebApp', Copy) {
+    from rootProject.file('../app')
+    into layout.projectDirectory.dir('src/main/assets/www')
+}
+tasks.named('preBuild') { dependsOn copyWebApp }

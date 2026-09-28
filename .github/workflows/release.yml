@@ -1,0 +1,165 @@
+name: Release
+
+# v로 시작하는 태그(예: v0.5.0)를 올리면 모든 설치 파일을 만들어 Release에 붙이고, 웹판을 GitHub Pages(gh-pages)에 올린다.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '버전 (비우면 VERSION 파일)'
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      v: ${{ steps.v.outputs.v }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        shell: bash
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then V="${GITHUB_REF_NAME#v}";
+          elif [ -n "${{ inputs.version }}" ]; then V="${{ inputs.version }}";
+          else V="$(tr -d '[:space:]' < VERSION)"; fi
+          echo "버전: $V"
+          echo "v=$V" >> "$GITHUB_OUTPUT"
+
+  desktop:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, target: win }
+          - { os: macos-latest, target: mac }
+          - { os: ubuntu-latest, target: linux }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci
+      - run: npm version "${{ needs.version.outputs.v }}" --no-git-tag-version --allow-same-version
+      - run: npm run dist:${{ matrix.target }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - run: ls -la dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.target }}
+          if-no-files-found: error
+          path: |
+            desktop/dist/Nakyeng-*.exe
+            desktop/dist/Nakyeng-*.dmg
+            desktop/dist/Nakyeng-*.zip
+            desktop/dist/Nakyeng-*.AppImage
+            desktop/dist/Nakyeng-*.deb
+
+  android:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: 서명 키 준비 (저장소 비밀값이 있을 때만)
+        shell: bash
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "NAKYENG_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "릴리스 키로 서명합니다."
+          else
+            echo "::warning::ANDROID_KEYSTORE_B64 비밀값이 없어 임시(디버그) 키로 서명합니다. 다음 버전으로 업데이트할 때 재설치가 필요할 수 있습니다."
+          fi
+      - name: APK 빌드
+        working-directory: android
+        env:
+          NAKYENG_VERSION: ${{ needs.version.outputs.v }}
+          NAKYENG_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          NAKYENG_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          NAKYENG_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon assembleRelease
+      - name: 서명 확인·이름 정리
+        shell: bash
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/apksigner" verify --print-certs "$APK" | head -5
+          "$BT/aapt2" dump badging "$APK" | grep -E "^package|sdkVersion|targetSdk" || true
+          mkdir -p out && cp "$APK" "out/Nakyeng-${{ needs.version.outputs.v }}-android.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          if-no-files-found: error
+          path: out/*.apk
+
+  web:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 웹판 압축
+        run: |
+          mkdir -p out
+          (cd app && zip -qr "../out/Nakyeng-${{ needs.version.outputs.v }}-web.zip" .)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web
+          if-no-files-found: error
+          path: out/*.zip
+      - name: GitHub Pages(gh-pages) 배포 — iPad·iPhone용
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SITE="$RUNNER_TEMP/site"; mkdir -p "$SITE"; cp -r app/. "$SITE/"; touch "$SITE/.nojekyll"
+          cd "$SITE"
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -qm "web ${{ needs.version.outputs.v }}"
+          git push -qf "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+
+  release:
+    needs: [version, desktop, android, web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: 체크섬·릴리스 노트
+        shell: bash
+        run: |
+          cd out && sha256sum * > SHA256SUMS.txt && ls -la && cd ..
+          sed "s/{{VERSION}}/${{ needs.version.outputs.v }}/g; s#{{REPO}}#${GITHUB_REPOSITORY}#g; s#{{OWNER}}#${GITHUB_REPOSITORY_OWNER}#g" RELEASE_NOTES.md > notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.version.outputs.v }}
+          target_commitish: ${{ github.sha }}
+          name: 나경 羅經 ${{ needs.version.outputs.v }}
+          body_path: notes.md
+          files: out/*
+          make_latest: true

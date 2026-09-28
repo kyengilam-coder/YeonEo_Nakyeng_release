@@ -1,0 +1,77 @@
+{
+  "name": "nakyeng",
+  "productName": "Nakyeng",
+  "version": "0.5.0",
+  "description": "羅經 · 나경 二十八層",
+  "main": "main.js",
+  "author": "kyengilam-coder <kyengilam-coder@users.noreply.github.com>",
+  "homepage": "https://github.com/kyengilam-coder/YeonEo_Nakyeng_release",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "prepack": "node ../scripts/copy-app.mjs desktop/app",
+    "dist:win": "npm run prepack && electron-builder --win nsis portable --x64 --publish never",
+    "dist:mac": "npm run prepack && electron-builder --mac dmg zip --universal --publish never",
+    "dist:linux": "npm run prepack && electron-builder --linux AppImage deb --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "44.4.5",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "io.github.kyengilamcoder.nakyeng",
+    "productName": "Nakyeng",
+    "copyright": "kyengilam-coder",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "publish": null,
+    "files": [
+      "main.js",
+      "app/**",
+      "build/icon.png",
+      "package.json"
+    ],
+    "artifactName": "Nakyeng-${version}-${os}-${arch}.${ext}",
+    "win": {
+      "icon": "build/icon.png",
+      "signAndEditExecutable": true
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "나경 羅經",
+      "artifactName": "Nakyeng-${version}-windows-setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "Nakyeng-${version}-windows-portable.${ext}"
+    },
+    "mac": {
+      "icon": "build/icon.png",
+      "category": "public.app-category.reference",
+      "identity": null,
+      "hardenedRuntime": false,
+      "artifactName": "Nakyeng-${version}-mac-${arch}.${ext}"
+    },
+    "dmg": {
+      "title": "Nakyeng ${version}"
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "category": "Education",
+      "executableName": "nakyeng",
+      "synopsis": "羅經 · 나경",
+      "maintainer": "kyengilam-coder <kyengilam-coder@users.noreply.github.com>"
+    },
+    "deb": {
+      "artifactName": "Nakyeng-${version}-linux-${arch}.${ext}"
+    },
+    "appImage": {
+      "artifactName": "Nakyeng-${version}-linux-${arch}.${ext}"
+    }
+  }
+}

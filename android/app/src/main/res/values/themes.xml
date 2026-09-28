@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">#3b1b14</item>
+        <item name="android:colorPrimaryDark">#3b1b14</item>
+        <item name="android:colorAccent">#b99552</item>
+        <item name="android:statusBarColor">#3b1b14</item>
+        <item name="android:navigationBarColor">#3b1b14</item>
+        <item name="android:windowBackground">@color/lacquer</item>
+    </style>
+    <color name="lacquer">#3b1b14</color>
+</resources>
