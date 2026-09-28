@@ -83,25 +83,50 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
-      - name: 서명 키 준비 (저장소 비밀값이 있을 때만)
+      - name: 서명 키 준비·검사 (저장소 비밀값이 있을 때만)
         shell: bash
         env:
           KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          if [ -n "$KS_B64" ]; then
-            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
-            echo "NAKYENG_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
-            echo "릴리스 키로 서명합니다."
-          else
+          # 비밀값을 붙여 넣을 때 따라 들어간 앞뒤 공백·줄바꿈을 지운다
+          trim() { printf '%s' "$1" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'; }
+          if [ -z "$(trim "$KS_B64")" ]; then
             echo "::warning::ANDROID_KEYSTORE_B64 비밀값이 없어 임시(디버그) 키로 서명합니다. 다음 버전으로 업데이트할 때 재설치가 필요할 수 있습니다."
+            exit 0
           fi
+          KS="$RUNNER_TEMP/release.jks"
+          if ! printf '%s' "$KS_B64" | tr -d ' \t\r\n' | base64 -d > "$KS" 2>/dev/null; then
+            echo "::error::ANDROID_KEYSTORE_B64가 base64 글이 아닙니다. 키 파일(nakyeng.jks)을 base64로 바꾼 글 전체를 넣으십시오."; exit 1
+          fi
+          SP=$(trim "$KS_PASS"); KA=$(trim "$KEY_ALIAS"); KP=$(trim "$KEY_PASS")
+          [ -n "$KA" ] || KA=nakyeng
+          [ -n "$KP" ] || KP="$SP"
+          [ -n "$SP" ] && echo "::add-mask::$SP"
+          [ -n "$KP" ] && echo "::add-mask::$KP"
+          if ! keytool -list -keystore "$KS" -storepass "$SP" > "$RUNNER_TEMP/kt.out" 2>&1; then
+            if grep -qi "password" "$RUNNER_TEMP/kt.out"; then
+              echo "::error::ANDROID_KEYSTORE_PASSWORD가 키 파일과 맞지 않습니다. 키 파일을 만들 때 쓴 비밀번호를 다시 넣으십시오."
+            else
+              echo "::error::ANDROID_KEYSTORE_B64로 만든 키 파일을 읽지 못했습니다. 키 파일(nakyeng.jks)을 base64로 바꾼 글 전체를 다시 넣으십시오."
+            fi
+            exit 1
+          fi
+          if ! keytool -list -keystore "$KS" -storepass "$SP" -alias "$KA" > /dev/null 2>&1; then
+            echo "::error::키 파일에 별칭 '$KA'가 없습니다. 키 파일에 든 항목: $(grep -i 'PrivateKeyEntry' "$RUNNER_TEMP/kt.out" | cut -d, -f1 | tr '\n' ' ')"; exit 1
+          fi
+          # PKCS12 키 저장소는 키 비밀번호가 저장소 비밀번호와 같다
+          if [ "$KP" != "$SP" ] && keytool -list -v -keystore "$KS" -storepass "$SP" 2>/dev/null | grep -qi 'type: PKCS12'; then
+            echo "::warning::PKCS12 키 저장소라 ANDROID_KEY_PASSWORD 대신 저장소 비밀번호를 씁니다."; KP="$SP"
+          fi
+          { echo "NAKYENG_KEYSTORE=$KS"; echo "NAKYENG_KEYSTORE_PASSWORD=$SP"; echo "NAKYENG_KEY_ALIAS=$KA"; echo "NAKYENG_KEY_PASSWORD=$KP"; } >> "$GITHUB_ENV"
+          echo "릴리스 키 확인 완료 (별칭 $KA). 이 키로 서명합니다."
       - name: APK 빌드
         working-directory: android
         env:
           NAKYENG_VERSION: ${{ needs.version.outputs.v }}
-          NAKYENG_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          NAKYENG_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          NAKYENG_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew --no-daemon assembleRelease
       - name: 서명 확인·이름 정리
         shell: bash
