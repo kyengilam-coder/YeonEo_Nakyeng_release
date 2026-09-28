@@ -301,7 +301,7 @@ const LAYER_INFO = {
 };
 // 설치형 앱(안드로이드) 연결: 안드로이드 앱이 window.NakyengAndroid를 넣어 준다. 웹·데스크톱에서는 없음
 const NATIVE=window.NakyengAndroid||null;
-const APP_VERSION=new URLSearchParams(location.search).get('v')||'0.6.0';   // 릴리스 때 scripts/copy-app.mjs가 VERSION 값으로 바꿔 넣음. 데스크톱 앱은 ?v=로 넘김
+const APP_VERSION=new URLSearchParams(location.search).get('v')||'0.6.1';   // 릴리스 때 scripts/copy-app.mjs가 VERSION 값으로 바꿔 넣음. 데스크톱 앱은 ?v=로 넘김
 const RELEASE_API='https://api.github.com/repos/kyengilam-coder/YeonEo_Nakyeng_release/releases/latest', RELEASE_PAGE='https://github.com/kyengilam-coder/YeonEo_Nakyeng_release/releases/latest';
 const SAN=['子','癸','丑','艮','寅','甲','卯','乙','辰','巽','巳','丙','午','丁','未','坤','申','庚','酉','辛','戌','乾','亥','壬'];
 const CN=['','一','二','三','四','五','六','七','八','九'];
@@ -691,7 +691,16 @@ $('bSyncQr').addEventListener('click',async()=>{if(!syncOn())return;await showQr
 $('bSyncCode').addEventListener('click',async()=>{if(!syncOn())return;const c=`nkc:${S.sync.token}:${S.sync.gistId}`;if(NATIVE&&NATIVE.copyText)NATIVE.copyText(c);else{try{await navigator.clipboard.writeText(c);}catch(e){prompt('연결 코드',c);}}msg.textContent='연결 코드를 복사했습니다. 다른 기기의 기록 → 붙여넣기에 넣으십시오. 토큰이 들어 있으니 남에게 보내지 마십시오.';});
 
 // ===== 조준 화면(AR): 카메라로 목표를 겨누어 三針 방위를 읽고 坐向·得水·破水·砂를 저장 =====
-const hasSensors=()=>('ontouchstart' in window||navigator.maxTouchPoints>0)&&typeof DeviceOrientationEvent!=='undefined';
+// 안드로이드 앱: 웹뷰의 방위 이벤트는 기기마다 오지 않는 경우가 있어, 앱이 SensorManager로 읽어 window.__nakyengHeading(flat, cam, pitch, acc)로 넘긴다
+const NATIVE_COMPASS=!!(NATIVE&&typeof NATIVE.startCompass==='function'&&(typeof NATIVE.hasCompass!=='function'||NATIVE.hasCompass()));
+let nativeUsers=0;
+function nativeCompass(on){if(!NATIVE_COMPASS)return;nativeUsers=Math.max(0,nativeUsers+(on?1:-1));try{if(on&&nativeUsers===1)NATIVE.startCompass();if(!on&&nativeUsers===0)NATIVE.stopCompass();}catch(e){}}
+const ACC_DEG={0:45,1:25,2:12,3:5};   // 안드로이드 센서 정확도 등급 → 대략의 오차
+window.__nakyengHeading=function(flat,cam,pitch,acc){flat=+flat;cam=+cam;pitch=+pitch;acc=+acc;if(!isFinite(flat))return;
+  if(sensor)heading=mod(flat);
+  if(aimOn){const h=(Math.abs(pitch)>25&&isFinite(cam))?mod(cam):mod(flat);aimAcc=ACC_DEG[acc]??null;aimRaw=h;
+    if(!aimFrozen){if(aimHd===null)aimHd=h;else{const d=mod(h-aimHd+180)-180;aimHd=mod(aimHd+d*0.25);}}}};
+const hasSensors=()=>NATIVE_COMPASS||(('ontouchstart' in window||navigator.maxTouchPoints>0)&&typeof DeviceOrientationEvent!=='undefined');
 let aimOn=false,aimStream=null,aimHd=null,aimRaw=null,aimAcc=null,aimFrozen=false,aimNeedle=3,aimRAF=null;
 const d2r=Math.PI/180;
 // 세워서 겨눌 때: 기기 뒤(카메라, 기기 -z축) 방향을 세계 좌표(x 동, y 북, z 위)로 돌려 방위를 구한다. W3C DeviceOrientation의 Z-X'-Y'' 회전
@@ -723,7 +732,8 @@ function drawTape(h){const cv=$('aimTape');const dpr=window.devicePixelRatio||1;
   g.strokeStyle='#c1341f';g.lineWidth=2;g.beginPath();g.moveTo(W/2,0);g.lineTo(W/2,H);g.stroke();}
 async function openAim(){if(aimOn)return;if(!hasSensors()){msg.textContent='조준 화면은 방위 센서가 있는 폰·패드에서만 됩니다.';return;}
   aimOn=true;aimHd=null;aimRaw=null;aimAcc=null;aimFrozen=false;$('aim').classList.add('on');$('aimSite').value=S.site||'';$('aimNeedle').value=String(aimNeedle);$('aimMsg').textContent='목표를 세로 선에 맞추고 종류 단추를 누르십시오. 철제·자석 근처는 피하고, 값이 흔들리면 기기를 8자로 돌려 보정하십시오.';
-  try{if(typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')throw new Error('센서 사용이 허용되지 않았습니다');window.addEventListener('deviceorientation',onOriAim,true);}
+  try{if(NATIVE_COMPASS)nativeCompass(true);
+    else if(typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')throw new Error('센서 사용이 허용되지 않았습니다');window.addEventListener('deviceorientation',onOriAim,true);}
     else{window.addEventListener('deviceorientationabsolute',onOriAim,true);window.addEventListener('deviceorientation',onOriAim,true);}}
   catch(e){$('aimMsg').textContent='센서를 켤 수 없습니다: '+e.message;}
   keepAwake(true);
@@ -731,7 +741,7 @@ async function openAim(){if(aimOn)return;if(!hasSensors()){msg.textContent='조�
   catch(e){$('aimMsg').textContent='카메라를 열지 못했습니다('+(e.message||e.name)+'). 눈금만으로 겨눌 수 있습니다: 기기 뒷면을 목표로 향하게 하십시오.';}
   setTimeout(()=>{if(aimOn&&aimRaw===null)$('aimMsg').textContent='방위 센서 값이 들어오지 않습니다. 이 기기·브라우저에서는 조준 화면을 쓸 수 없습니다.';},3000);
   aimDraw();}
-function closeAim(){if(!aimOn)return;aimOn=false;$('aim').classList.remove('on');cancelAnimationFrame(aimRAF);window.removeEventListener('deviceorientationabsolute',onOriAim,true);window.removeEventListener('deviceorientation',onOriAim,true);
+function closeAim(){if(!aimOn)return;aimOn=false;$('aim').classList.remove('on');cancelAnimationFrame(aimRAF);if(NATIVE_COMPASS)nativeCompass(false);window.removeEventListener('deviceorientationabsolute',onOriAim,true);window.removeEventListener('deviceorientation',onOriAim,true);
   if(aimStream){aimStream.getTracks().forEach(t=>t.stop());aimStream=null;}if(!sensor)keepAwake(false);}
 function kindNote(r){const az=r.az;switch(r.kind){
   case '得水':{const g=curGuk();return `縫針 ${valAt(20,az)} · 雙山 ${ssOf(az)}`+(g?` · ${g.name.replace('十二長生 ','')} ${valAt(g.n,az)||''}`:'');}
@@ -876,10 +886,11 @@ function tick(){if(sensor&&heading!==null){const tgt=-(heading+(S.declOn?S.decl:
 requestAnimationFrame(tick);
 async function keepAwake(on){if(NATIVE&&NATIVE.keepScreenOn){NATIVE.keepScreenOn(!!on);return;}try{if(on&&'wakeLock' in navigator){if(!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>{wl=null;});}}else if(!on&&wl){await wl.release();wl=null;}}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&sensor&&S.wake)keepAwake(true);});
-function stopSensor(){sensor=false;heading=null;bS.classList.remove('on');window.removeEventListener('deviceorientationabsolute',onOri,true);window.removeEventListener('deviceorientation',onOri,true);keepAwake(false);}
-async function startSensor(){
+function stopSensor(){if(!sensor)return;sensor=false;heading=null;bS.classList.remove('on');if(NATIVE_COMPASS)nativeCompass(false);window.removeEventListener('deviceorientationabsolute',onOri,true);window.removeEventListener('deviceorientation',onOri,true);keepAwake(false);}
+async function startSensor(){if(sensor)return;
   try{
-    if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+    if(NATIVE_COMPASS){nativeCompass(true);}
+    else if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
       const r=await DeviceOrientationEvent.requestPermission(); if(r!=='granted'){msg.textContent='센서 사용이 허용되지 않았습니다. 수동 회전으로 사용하십시오.';return;}
       window.addEventListener('deviceorientation',onOri,true);
     } else { window.addEventListener('deviceorientationabsolute',onOri,true); window.addEventListener('deviceorientation',onOri,true); }
