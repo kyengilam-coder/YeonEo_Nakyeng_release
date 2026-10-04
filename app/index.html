@@ -31,6 +31,7 @@ header h1{grid-area:t}#readout{grid-area:r}
 header h1{font-size:18px;font-weight:600;margin:0;letter-spacing:.06em;white-space:nowrap}
 header h1 small{font-weight:400;opacity:.7;margin-left:6px;font-size:13px}
 header h1 .by{display:block;font-size:11px;font-weight:400;opacity:.6;letter-spacing:.02em;margin-top:1px}
+#verTag{font-variant-numeric:tabular-nums}
 #updBar{display:none;width:100%;font-size:12.5px;padding:4px 8px;border-radius:8px;background:rgba(185,149,82,.25);align-items:center;gap:6px;flex-wrap:wrap}
 #updBar.on{display:flex}
 #readout{text-align:right;line-height:1.3;font-size:13px;font-variant-numeric:tabular-nums}
@@ -78,7 +79,7 @@ body.open #drawer{display:flex}
 @media (min-width:900px){ #drawer{width:400px;border-left:1px solid var(--line)} }
 @media (max-width:899px){ #drawer{position:absolute;left:0;right:0;bottom:0;max-height:58%;border-top:1px solid var(--line);border-radius:14px 14px 0 0;box-shadow:0 -6px 18px rgba(0,0,0,.18)}
   body.open footer{display:none}   /* 패널이 열리면 아래 나경 메뉴를 숨기고, "나경 복귀"로 돌아오면 다시 보임 */
-  body.t-site #drawer{top:0;max-height:none;border-radius:0} }   /* 터 화면은 방위도가 다 보이게 盤 자리를 모두 씀 */
+  body.t-site #drawer,body.t-rec #drawer{top:0;max-height:none;border-radius:0} }   /* 터 화면은 방위도가 다 보이게 盤 자리를 모두 씀 */
 #tabs{display:flex;gap:4px;padding:8px 10px 0;flex-wrap:wrap;align-items:center}
 #tabs button{border-color:transparent;background:transparent;padding:5px 9px;font-size:13px}
 #tabs button.on{background:var(--gilt);color:#26100b}
@@ -113,8 +114,19 @@ ul.ls li:hover{background:rgba(185,149,82,.12)}
 ul.ls li .g{flex:1;min-width:120px;cursor:pointer}
 ul.ls li small{opacity:.7;display:block}
 ul.ls li .acts{display:flex;gap:5px;flex-shrink:0}
+.pane h3.xh{font-family:"Dotum","돋움","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;font-weight:700;font-size:14.5px;opacity:1;margin:14px 0 6px;padding-bottom:3px;border-bottom:1.5px solid var(--gilt)}   /* 기록 탭 구역 머리: 돋움체로 강조 */
+#recList li.grp{display:block;padding:8px 2px 3px;border-bottom:1px solid var(--line);font-weight:600;font-size:13px;opacity:.85;cursor:default}
+#recList li.grp:hover{background:none}
+#recList li.grp span{font-weight:400;opacity:.7;margin-left:4px}
+#recList li.rc{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:6px 2px;flex-wrap:nowrap}
+#recList li.rc .g{min-width:0}
+#recList li.rc .v{display:flex;align-items:baseline;gap:6px}
+#recList li.rc .v .az{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+#recList li.rc .acts{flex-direction:row;align-self:center}
+#recList li.rc .acts button{font-size:12px;padding:4px 8px}
+#syncLine label.chk{font-weight:600}
 /* 폰: 기록 글자를 키우고, 서랍을 불투명하게 해 아래 盤이 비치지 않게, 단추는 세로로 쌓아 글이 넓게 */
-@media (max-width:899px){ #drawer{background:var(--panelS)} .pane{font-size:15px;line-height:1.5} ul.ls li{padding:8px 2px} ul.ls li .g{min-width:0} ul.ls li small{font-size:13px;opacity:.8;margin-top:2px} ul.ls li .acts{flex-direction:column} ul.ls li .acts button{font-size:13px;padding:5px 9px} .kd{font-size:12.5px;padding:1px 7px} }
+@media (max-width:899px){ #drawer{background:var(--panelS)} .pane{font-size:15px;line-height:1.5} ul.ls li{padding:8px 2px} ul.ls li .g{min-width:0} ul.ls li small{font-size:13px;opacity:.8;margin-top:2px} ul.ls li .acts{flex-direction:column} ul.ls li .acts button{font-size:13px;padding:5px 9px} #recList li.rc .acts{flex-direction:row} #recList li.rc .acts button{font-size:12px;padding:4px 7px} .kd{font-size:12.5px;padding:1px 7px} }
 .chk{display:flex;align-items:center;gap:6px;padding:3px 0}
 .chk input{accent-color:var(--gilt)}
 .desc{opacity:.85;font-size:12.5px;margin:2px 0 8px 0}
@@ -172,7 +184,7 @@ ul.pick li small{display:block;opacity:.75}
 <body>
 <div id="app">
 <header>
-  <h1>羅經<small id="nLayers">二十三層</small><span class="by">by 鳶飛魚躍</span></h1>
+  <h1>羅經<small id="nLayers">二十三層</small><span class="by">by 鳶飛魚躍<span id="verTag"></span></span></h1>
   <div id="readout">
     <div class="rl"><b>向</b><span class="d" id="deg">0.0<span>°</span></span><span id="san">正針 子 · 中針 子 · 縫針 壬</span></div>
     <div class="rl zl"><b>坐</b><span class="d" id="zdeg">180.0<span>°</span></span><span id="zsan"></span></div>
@@ -188,7 +200,7 @@ ul.pick li small{display:block;opacity:.75}
 </div>
 <aside id="drawer">
   <div id="tabs">
-    <button data-tab="site">터</button><button data-tab="rec">기록</button><button data-tab="read">판독</button><button data-tab="layers">층</button><button data-tab="find">찾기</button><button data-tab="set">설정</button><button data-tab="help">도움말</button>
+    <button data-tab="site">터</button><button data-tab="rec">기록</button><button data-tab="read">판독</button><button data-tab="find">찾기</button><button data-tab="set">설정</button><button data-tab="help">도움말</button>
     <button class="x" id="bClose" title="패널을 닫고 나경 화면으로 (Esc)">나경 복귀</button>
   </div>
   <section class="pane" id="p-read">
@@ -206,12 +218,13 @@ ul.pick li small{display:block;opacity:.75}
     <ul class="ls" id="findList"></ul>
   </section>
   <section class="pane" id="p-rec">
-    <div class="row"><input type="text" id="siteIn" placeholder="터 이름" style="width:7em"><input type="text" id="memoIn" placeholder="메모" style="flex:1"><button class="sm" id="bSave">현재 방위 저장</button></div>
+    <div class="row"><input type="text" id="siteIn" placeholder="터 이름" style="width:6em;min-width:0"><input type="text" id="memoIn" placeholder="메모" style="flex:1;min-width:4em"><button class="sm" id="bSave">현재 방위 저장</button></div>
     <div class="row"><label class="chk"><input type="checkbox" id="cGps">위치(GPS)도 함께 저장</label><button class="sm" id="bCsv">CSV 내려받기</button></div>
-    <h3>다른 기기와 주고받기</h3>
+    <h3 class="xh">다른 기기와 주고받기</h3>
     <div class="row"><button class="sm" id="bShare">보내기</button><button class="sm" id="bExport">파일 내보내기</button><button class="sm" id="bImport">파일 가져오기</button><button class="sm" id="bRecLink">링크 복사</button><button class="sm" id="bQrShow">QR 보이기</button><button class="sm" id="bQrScan">QR 읽기</button><button class="sm" id="bPaste">붙여넣기</button></div>
     <div id="syncLine" class="row"></div>
     <input type="file" id="fileIn" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden><input type="file" id="qrImgIn" accept="image/*" capture="environment" hidden>
+    <h3 class="xh">기록 목록</h3>
     <div class="row"><label class="note">터 <select id="siteSel"><option value="">전체</option></select></label><span class="note" id="recCount"></span><button class="sm" id="bRecSite" title="같은 터의 기록을 방위도로 봄">터 화면</button></div>
     <ul class="ls" id="recList"></ul>
   </section>
@@ -359,7 +372,7 @@ const LAYER_INFO = {
 };
 // 설치형 앱(안드로이드) 연결: 안드로이드 앱이 window.NakyengAndroid를 넣어 준다. 웹·데스크톱에서는 없음
 const NATIVE=window.NakyengAndroid||null;
-const APP_VERSION=new URLSearchParams(location.search).get('v')||'0.7.4';   // 릴리스 때 scripts/copy-app.mjs가 VERSION 값으로 바꿔 넣음. 데스크톱 앱은 ?v=로 넘김
+const APP_VERSION=new URLSearchParams(location.search).get('v')||'0.7.5';   // 릴리스 때 scripts/copy-app.mjs가 VERSION 값으로 바꿔 넣음. 데스크톱 앱은 ?v=로 넘김
 const RELEASE_API='https://api.github.com/repos/kyengilam-coder/YeonEo_Nakyeng_release/releases/latest', RELEASE_PAGE='https://github.com/kyengilam-coder/YeonEo_Nakyeng_release/releases/latest';
 const SAN=['子','癸','丑','艮','寅','甲','卯','乙','辰','巽','巳','丙','午','丁','未','坤','申','庚','酉','辛','戌','乾','亥','壬'];
 const CN=['','一','二','三','四','五','六','七','八','九'];
@@ -495,12 +508,12 @@ function renderRead(az,za,all){
 let curTab=null;
 function openTab(t,keep){const body=document.body;  // keep: 코드에서 여는 경우 — 이미 열려 있어도 닫지 않음
   if(!keep&&t===curTab&&body.classList.contains('open')){closeDrawer();return;}
-  curTab=t; body.classList.add('open'); body.classList.toggle('t-site',t==='site');
+  curTab=t; body.classList.add('open'); body.classList.toggle('t-site',t==='site'); body.classList.toggle('t-rec',t==='rec');
   document.querySelectorAll('#tabs button[data-tab],footer .tabbtn').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));
   if(t==='read') apply(); if(t==='layers') renderLayers(); if(t==='rec') renderRec(); if(t==='site') renderSite(); if(t==='set') renderSet(); if(t==='find') $('findIn').focus();
 }
-function closeDrawer(){document.body.classList.remove('open','t-site');document.querySelectorAll('#tabs button[data-tab],footer .tabbtn').forEach(b=>b.classList.remove('on'));}
+function closeDrawer(){document.body.classList.remove('open','t-site','t-rec');document.querySelectorAll('#tabs button[data-tab],footer .tabbtn').forEach(b=>b.classList.remove('on'));}
 document.querySelectorAll('#tabs button[data-tab],footer .tabbtn').forEach(b=>b.addEventListener('click',()=>openTab(b.dataset.tab)));
 $('bClose').addEventListener('click',closeDrawer);
 window.addEventListener('hashchange',()=>{const m=location.hash.match(/az=(-?[\d.]+)/); if(m&&Math.abs(mod(+m[1])-azNow())>0.05){if(sensor)stopSensor();setAz(+m[1]);}});
@@ -584,13 +597,19 @@ function renderRec(){drawSiteMarks();if(curTab==='site'&&document.body.classList
   sel.innerHTML='<option value="">전체</option>'+sites.map(x=>`<option${x===siteFilter?' selected':''}>${x.replace(/</g,'&lt;')}</option>`).join(''); sel.style.display=sites.length?'':'none';
   const rows=siteFilter?all.filter(r=>r.site===siteFilter):all; $('recCount').textContent=rows.length?`${rows.length}건`:'';
   if(!rows.length){ul.innerHTML='<li><span class="note">저장된 기록이 없습니다.</span></li>';return;}
-  rows.slice().reverse().forEach(r=>{const li=document.createElement('li');
-    li.innerHTML=`<div class="g"><span class="kd k-${KINDS[r.kind]?Object.keys(KINDS).indexOf(r.kind):0}">${r.kind}</span>${kindNote(r)} · <b>${r.az.toFixed(1)}°</b>${r.memo?' · '+r.memo:''}<small>${r.site?'터 '+r.site+' · ':''}${fmtT(r.t)}${r.dev?' · '+r.dev:''}${r.lat!=null?` · ${r.lat.toFixed(5)}, ${r.lon.toFixed(5)}`:''}</small></div><div class="acts"><button class="sm">불러오기</button><button class="sm">삭제</button></div>`;
+  // 터별로 모아 보여 줌: 최근에 잰 터가 위, 터 안에서는 최근 기록이 위. 터 없는 기록은 맨 끝
+  const groups=new Map();rows.slice().reverse().forEach(r=>{const k=r.site||'';if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);});
+  const keys=[...groups.keys()].sort((a,b)=>(a==='')-(b==='')||groups.get(b)[0].t-groups.get(a)[0].t);
+  const head=!siteFilter&&(keys.length>1||keys[0]!=='');
+  keys.forEach(k=>{if(head){const h=document.createElement('li');h.className='grp';h.innerHTML=`${k?'터 '+hEsc(k):'터 없음'}<span>${groups.get(k).length}건</span>`;ul.appendChild(h);}
+  groups.get(k).forEach(r=>{const li=document.createElement('li');li.className='rc';
+    const meta=[r.memo?hEsc(r.memo):'',!head&&r.site?'터 '+hEsc(r.site):'',fmtT(r.t),r.dev?hEsc(r.dev):'',r.lat!=null?`${r.lat.toFixed(5)}, ${r.lon.toFixed(5)}`:''].filter(Boolean).join(' · ');
+    li.innerHTML=`<div class="g"><div class="v"><span><span class="kd k-${KINDS[r.kind]?Object.keys(KINDS).indexOf(r.kind):0}">${hEsc(r.kind)}</span>${kindNote(r)}</span><span class="az">${r.az.toFixed(1)}°</span></div><small>${meta}</small></div><div class="acts"><button class="sm">불러오기</button><button class="sm">삭제</button></div>`;
     const [bl,bd]=li.querySelectorAll('button');
     bl.addEventListener('click',()=>{if(sensor)stopSensor();setAz(r.az);openTab('read',true);});
     bd.addEventListener('click',()=>{if(armed(bd,'정말 삭제')){r.del=true;r.m=Date.now();r.dev=devName();saveRec();renderRec();msg.textContent='기록을 삭제했습니다.';}});
     li.querySelector('.g').addEventListener('click',()=>{if(r.lat!=null)openExternal(`https://www.google.com/maps?q=${r.lat},${r.lon}`);});
-    ul.appendChild(li);});
+    ul.appendChild(li);});});
 }
 $('cGps').addEventListener('change',e=>{S.gps=e.target.checked;saveS();});
 $('siteSel').addEventListener('change',e=>{siteFilter=e.target.value;renderRec();});
@@ -730,8 +749,12 @@ async function gh(path,opt={}){const r=await fetch(GH+path,{...opt,headers:{Acce
   return r.status===204?null:r.json();}
 function setSyncStatus(t){S.syncMsg=t;const e=$('syncStatus');if(e)e.textContent=t;renderSyncLine();}
 function renderSyncLine(){const e=$('syncLine');if(!e)return;
-  if(!syncOn()){e.innerHTML='<span class="note">자동 동기화 꺼짐 · <a href="#" id="syncGo">설정에서 연결</a></span>';e.querySelector('#syncGo').addEventListener('click',ev=>{ev.preventDefault();openTab('set',true);});return;}
-  e.innerHTML=`<span class="note">동기화: ${S.sync.last?fmtT(S.sync.last):'아직'}${S.syncMsg&&/실패|중/.test(S.syncMsg)?' · '+S.syncMsg:''}</span> <button class="sm" id="syncNowB">지금 동기화</button>`;e.querySelector('#syncNowB').addEventListener('click',()=>syncNow(true));}
+  const on=syncOn()&&!!S.sync.auto;
+  e.innerHTML=`<label class="chk"><input type="checkbox" id="cRecSync"${on?' checked':''}>자동 동기화</label>`+(syncOn()?`<span class="note">${S.sync.last?'마지막 '+fmtT(S.sync.last):'아직 안 함'}${S.syncMsg&&/실패|중/.test(S.syncMsg)?' · '+S.syncMsg:''}</span> <button class="sm" id="syncNowB">지금 동기화</button>`:'<span class="note">GitHub 연결 필요</span>');
+  e.querySelector('#cRecSync').addEventListener('change',ev=>{   // 연결 전이면 설정 탭의 연결 칸으로 안내, 연결돼 있으면 자동 동기화만 켜고 끔
+    if(!syncOn()){ev.target.checked=false;openTab('set',true);msg.textContent='자동 동기화를 켜려면 먼저 GitHub 토큰으로 연결하십시오(설정 → 기록 자동 동기화).';return;}
+    S.sync.auto=ev.target.checked;saveS();if(S.sync.auto)syncNow(false);msg.textContent=S.sync.auto?'자동 동기화를 켰습니다.':'자동 동기화를 껐습니다. "지금 동기화"로 손수 맞출 수 있습니다.';});
+  if(syncOn())e.querySelector('#syncNowB').addEventListener('click',()=>syncNow(true));}
 function scheduleSync(){if(!syncOn()||!S.sync.auto)return;clearTimeout(syncT);syncT=setTimeout(()=>syncNow(false),3000);}
 async function syncNow(manual){if(!syncOn()){if(manual)msg.textContent='설정에서 먼저 연결하십시오.';return;}if(syncing)return;if(!navigator.onLine){setSyncStatus('오프라인 · 연결되면 다시 시도');return;}
   syncing=true;setSyncStatus('동기화 중…');
@@ -1177,7 +1200,7 @@ async function loadLayers(){
 }
 (async()=>{
   LAYERS=await loadLayers(); if(!LAYERS.length){msg.textContent='층 데이터를 읽지 못했습니다.';return;}
-  build(); $('nLayers').textContent=numCN(ringCount())+'層'; $('zoom').value=zoom; apply(); drawSiteMarks();
+  build(); $('nLayers').textContent=numCN(ringCount())+'層'; $('verTag').textContent=' · v'+APP_VERSION; $('zoom').value=zoom; apply(); drawSiteMarks();
   checkRecHash(); autoCompass(); if(syncOn()&&S.sync.auto)setTimeout(()=>syncNow(false),1500);
   if(!NATIVE&&'serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){try{navigator.serviceWorker.register('sw.js').then(watchSw).catch(()=>{});}catch(e){}}
   if(!S.updChecked||Date.now()-S.updChecked>86400000)setTimeout(()=>checkUpdate(false),5000);
