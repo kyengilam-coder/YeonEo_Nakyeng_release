@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowInsets;
@@ -347,6 +348,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     private static String mimeOf(String name) {
         if (name.endsWith(".json")) return "application/json";
         if (name.endsWith(".csv")) return "text/csv";
+        if (name.endsWith(".png")) return "image/png";
         return "text/plain";
     }
 
@@ -372,8 +374,20 @@ public class MainActivity extends Activity implements SensorEventListener {
         /** 글 파일을 다운로드 폴더(Download/Nakyeng)에 저장하고, 사용자에게 보여 줄 위치를 돌려준다. 실패하면 빈 글. */
         @JavascriptInterface
         public String saveText(String name, String text) {
-            String safe = safeName(name, "nakyeng.txt");
-            byte[] data = (text == null ? "" : text).getBytes(StandardCharsets.UTF_8);
+            return saveBytes(safeName(name, "nakyeng.txt"), (text == null ? "" : text).getBytes(StandardCharsets.UTF_8));
+        }
+
+        /** 그림 같은 이진 파일(base64 글)을 다운로드 폴더(Download/Nakyeng)에 저장한다. 터 방위도 PNG에 쓴다. */
+        @JavascriptInterface
+        public String saveBase64(String name, String b64, String mime) {
+            try {
+                return saveBytes(safeName(name, "nakyeng.png"), Base64.decode(b64 == null ? "" : b64, Base64.DEFAULT));
+            } catch (IllegalArgumentException e) {
+                return "";
+            }
+        }
+
+        private String saveBytes(String safe, byte[] data) {
             try {
                 String shown;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

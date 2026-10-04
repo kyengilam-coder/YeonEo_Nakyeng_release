@@ -75,12 +75,24 @@ text{font-family:"Noto Serif KR","Nanum Myeongjo","Apple SD Gothic Neo",serif;fi
 /* drawer */
 #drawer{display:none;flex-direction:column;background:var(--panel);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);min-height:0}
 body.open #drawer{display:flex}
-@media (min-width:900px){ #drawer{width:360px;border-left:1px solid var(--line)} }
-@media (max-width:899px){ #drawer{position:absolute;left:0;right:0;bottom:0;max-height:58%;border-top:1px solid var(--line);border-radius:14px 14px 0 0;box-shadow:0 -6px 18px rgba(0,0,0,.18)} }
+@media (min-width:900px){ #drawer{width:400px;border-left:1px solid var(--line)} }
+@media (max-width:899px){ #drawer{position:absolute;left:0;right:0;bottom:0;max-height:58%;border-top:1px solid var(--line);border-radius:14px 14px 0 0;box-shadow:0 -6px 18px rgba(0,0,0,.18)}
+  body.open footer{display:none}   /* 패널이 열리면 아래 나경 메뉴를 숨기고, "나경 복귀"로 돌아오면 다시 보임 */
+  body.t-site #drawer{top:0;max-height:none;border-radius:0} }   /* 터 화면은 방위도가 다 보이게 盤 자리를 모두 씀 */
 #tabs{display:flex;gap:4px;padding:8px 10px 0;flex-wrap:wrap;align-items:center}
 #tabs button{border-color:transparent;background:transparent;padding:5px 9px;font-size:13px}
 #tabs button.on{background:var(--gilt);color:#26100b}
-#tabs .x{margin-left:auto;font-size:15px;line-height:1;padding:3px 9px}
+#tabs .x{margin-left:auto;font-size:13px;line-height:1.2;padding:5px 10px;border-color:rgba(185,149,82,.55)}
+#siteBar{display:none;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+#siteBar button{padding:7px 2px;font-size:12.5px;line-height:1.25;word-break:keep-all}
+body.t-site #siteBar.on{display:grid}
+body.t-site #stMap{max-width:440px}
+@media (max-width:600px){ #tabs{gap:0;padding:6px 6px 0} #tabs button{padding:5px 6px} #tabs .x{padding:4px 7px} #p-site{padding:8px 10px 14px} }
+/* 터 화면 위 두 줄: 줄마다 한 줄로. 좁으면 글자를 조금 줄이고, 아래 줄은 단추 안에서 두 줄로 꺾임 */
+#stHead{flex-wrap:nowrap;gap:4px} #stHead label{display:flex;align-items:center;gap:4px;flex:1 1 auto;min-width:0} #stSel{flex:1 1 auto;min-width:4.5em;max-width:12em;font-size:12.5px}
+#stHead button.sm{white-space:nowrap;padding:5px 6px;flex:none}
+#stAct{display:grid;grid-template-columns:auto auto auto;justify-content:start;gap:4px} #stAct button.sm{white-space:normal;word-break:keep-all;line-height:1.25;padding:5px 6px;font-size:11.5px}
+@media (max-width:380px){ #stHead button.sm{font-size:11.5px;padding:5px 5px} #stAct button.sm{font-size:11px;padding:5px 4px} #stHead label{font-size:0} #stHead label select{font-size:12px} }
 .pane{display:none;padding:8px 14px 14px;overflow:auto;-webkit-overflow-scrolling:touch;font-size:13px;line-height:1.45}
 .pane.on{display:block}
 .pane h3{font-size:13px;margin:10px 0 6px;opacity:.75;font-weight:600}
@@ -176,8 +188,8 @@ ul.pick li small{display:block;opacity:.75}
 </div>
 <aside id="drawer">
   <div id="tabs">
-    <button data-tab="read">판독</button><button data-tab="layers">층</button><button data-tab="find">찾기</button><button data-tab="rec">기록</button><button data-tab="site">터</button><button data-tab="set">설정</button><button data-tab="help">도움말</button>
-    <button class="x" id="bClose" title="닫기 (Esc)">×</button>
+    <button data-tab="site">터</button><button data-tab="rec">기록</button><button data-tab="read">판독</button><button data-tab="layers">층</button><button data-tab="find">찾기</button><button data-tab="set">설정</button><button data-tab="help">도움말</button>
+    <button class="x" id="bClose" title="패널을 닫고 나경 화면으로 (Esc)">나경 복귀</button>
   </div>
   <section class="pane" id="p-read">
     <div class="row"><label>向 각도 <input type="number" id="azIn" min="0" max="360" step="0.1" inputmode="decimal"></label><button class="sm" id="bAz">적용</button><button class="sm" id="bLink">링크 복사</button></div>
@@ -204,17 +216,18 @@ ul.pick li small{display:block;opacity:.75}
     <ul class="ls" id="recList"></ul>
   </section>
   <section class="pane" id="p-site">
-    <div class="row"><label class="note">터 <select id="stSel"></select></label><button class="sm" id="bSiteNew">새 터</button><span class="note" id="stCur"></span></div>
+    <div class="row" id="stHead"><label class="note">터 <select id="stSel"></select></label><button class="sm" id="bSiteNew">새 터</button><span id="stTop" style="display:contents"><button class="sm" id="bSiteHere" title="지금부터 조준·기록 저장을 이 터에 묶음">이 터에서 재기</button><button class="sm" id="bSiteRename">이름 바꾸기</button><button class="sm" id="bSiteUp" title="방위도를 向이 위로 오도록 돌림">向 위로</button></span></div>
     <div id="stEmpty"><p class="note">아직 터가 없습니다. 조준 화면에서 坐向·得水·破水·砂를 잰 뒤 <b>터로 묶기</b>를 누르거나, "새 터"를 만들어 기존 기록을 넣으십시오.</p>
       <div class="row"><button class="sm" id="bSiteAim">조준으로 재기</button><span class="note" id="stLoose"></span></div></div>
     <div id="stBox">
-      <div class="row"><button class="sm" id="bSiteHere" title="지금부터 저장하는 기록을 이 터에 묶음">이 터에서 재기</button><button class="sm" id="bSiteLoad" title="坐向으로 盤을 돌리고 得水·破水·砂를 盤 위에 표시">盤에 불러오기</button><button class="sm" id="bSiteUp" title="방위도를 向이 위로 오도록 돌림">向 위로</button><button class="sm" id="bSiteRename">이름 바꾸기</button></div>
+      <div class="row" id="stAct"><button class="sm" id="bSiteShoot" title="조준을 켜서 직접 겨누어 잰 값을 이 터에 넣음">직접 촬영해 이 터에 넣기</button><button class="sm" id="bSiteAdd" title="기록 목록에서 하나 이상 골라 이 터에 넣음">기록에서 이 터에 넣기</button><button class="sm" id="bSiteLoad" title="坐向으로 盤을 돌리고 得水·破水·砂를 盤 위에 표시">盤에 불러오기</button></div>
+      <div class="note" id="stCur"></div>
       <svg id="stMap" viewBox="-170 -170 340 340" xmlns="http://www.w3.org/2000/svg"></svg>
       <div id="stSum"></div>
       <h3>이 터만 보내기</h3>
-      <div class="row"><button class="sm" id="bSiteShare">보내기</button><button class="sm" id="bSiteExport">파일 내보내기</button><button class="sm" id="bSiteLink">링크 복사</button><button class="sm" id="bSiteQr">QR 보이기</button><button class="sm" id="bSiteCsv">CSV 내려받기</button></div>
+      <div class="row"><button class="sm" id="bSiteShare">보내기</button><button class="sm" id="bSiteExport">파일 내보내기</button><span class="note">PNG·링크·QR·CSV는 아래 단추</span></div>
       <h3>이 터의 기록 <span id="stCount" class="note"></span></h3>
-      <div class="row"><button class="sm" id="bSiteAdd">기록 넣기</button><span class="note">다른 기록을 이 터에 넣거나, 아래 "빼기"로 뺄 수 있습니다.</span></div>
+      <p class="note">잘못 넣은 기록은 아래 "빼기"로 이 터에서 뺍니다(기록은 남음).</p>
       <ul class="ls" id="stList"></ul>
     </div>
   </section>
@@ -257,7 +270,7 @@ ul.pick li small{display:block;opacity:.75}
       <tr><td><kbd>[</kbd> <kbd>]</kbd></td><td>0.5° 회전 (<kbd>Shift</kbd> 7.5°)</td></tr>
       <tr><td><kbd>+</kbd> <kbd>−</kbd></td><td>확대·축소</td></tr>
       <tr><td><kbd>?</kbd></td><td>이 도움말</td></tr>
-      <tr><td><kbd>Esc</kbd></td><td>패널 닫기</td></tr>
+      <tr><td><kbd>Esc</kbd> / 나경 복귀</td><td>패널을 닫고 나경 화면으로</td></tr>
       <tr><td>이동 자유 / 가로만 / 세로만 (<kbd>H</kbd> <kbd>V</kbd>)</td><td>화면 이동 방향을 한 축으로 고정. 고정 중에는 끌기가 이동이 됨</td></tr>
       <tr><td><kbd>Ctrl</kbd>+이동 끌기</td><td>더 많이 움직인 축으로만 이동. 오른쪽 버튼에는 Shift 대신 Ctrl을 쓰십시오(Shift+오른쪽 버튼은 브라우저 메뉴가 뜸)</td></tr>
       <tr><td>가운데로 (<kbd>C</kbd>)</td><td>확대·회전은 그대로 두고 盤을 화면 가운데로</td></tr>
@@ -272,6 +285,7 @@ ul.pick li small{display:block;opacity:.75}
     </table>
     <p class="note">주소 뒤에 <code>#az=187.5</code>처럼 각도를 붙이면 그 방위로 열립니다. 한 번 연 뒤에는 오프라인에서도 열립니다(설치형 브라우저·GitHub Pages).</p>
   </section>
+  <div id="siteBar"><button id="bSitePng" title="방위도를 그림 파일로 저장">PNG로 내보내기</button><button id="bSiteLink" title="이 터의 기록을 담은 링크를 복사">링크 복사</button><button id="bSiteQr" title="이 터의 기록을 QR로 보여 다른 기기가 읽게 함">QR 보이기</button><button id="bSiteCsv" title="이 터의 기록을 표(CSV) 파일로 저장">CSV 내려받기</button></div>
 </aside>
 </div>
 <div id="aim">
@@ -294,6 +308,8 @@ ul.pick li small{display:block;opacity:.75}
 <footer>
   <button id="bSensor">나침반</button>
   <button id="bAim" title="카메라로 겨누어 방위를 재고 坐向·得水·破水·砂를 저장">조준</button>
+  <button class="tabbtn" data-tab="site">터</button>
+  <button class="tabbtn" data-tab="rec">기록</button>
   <button id="bLock">회전 잠금</button>
   <button id="bReset">초기화</button>
   <button id="bCenter" title="확대·회전은 그대로 두고 盤을 화면 가운데로 (C)">가운데로</button>
@@ -301,8 +317,6 @@ ul.pick li small{display:block;opacity:.75}
   <button class="tabbtn" data-tab="read">판독</button>
   <button class="tabbtn" data-tab="layers">층</button>
   <button class="tabbtn" data-tab="find">찾기</button>
-  <button class="tabbtn" data-tab="rec">기록</button>
-  <button class="tabbtn" data-tab="site">터</button>
   <button class="tabbtn" data-tab="set">설정</button>
   <button class="tabbtn" data-tab="help">?</button>
   <label class="z">확대 <input id="zoom" type="range" min="1" max="6" step="0.05" value="1"></label>
@@ -345,7 +359,7 @@ const LAYER_INFO = {
 };
 // 설치형 앱(안드로이드) 연결: 안드로이드 앱이 window.NakyengAndroid를 넣어 준다. 웹·데스크톱에서는 없음
 const NATIVE=window.NakyengAndroid||null;
-const APP_VERSION=new URLSearchParams(location.search).get('v')||'0.7.2';   // 릴리스 때 scripts/copy-app.mjs가 VERSION 값으로 바꿔 넣음. 데스크톱 앱은 ?v=로 넘김
+const APP_VERSION=new URLSearchParams(location.search).get('v')||'0.7.4';   // 릴리스 때 scripts/copy-app.mjs가 VERSION 값으로 바꿔 넣음. 데스크톱 앱은 ?v=로 넘김
 const RELEASE_API='https://api.github.com/repos/kyengilam-coder/YeonEo_Nakyeng_release/releases/latest', RELEASE_PAGE='https://github.com/kyengilam-coder/YeonEo_Nakyeng_release/releases/latest';
 const SAN=['子','癸','丑','艮','寅','甲','卯','乙','辰','巽','巳','丙','午','丁','未','坤','申','庚','酉','辛','戌','乾','亥','壬'];
 const CN=['','一','二','三','四','五','六','七','八','九'];
@@ -369,9 +383,10 @@ function el(n,a){const e=document.createElementNS(svgNS,n);for(const k in a)e.se
 function pol(r,a){const t=(a-90)*Math.PI/180;return [r*Math.cos(t),r*Math.sin(t)];}
 const mod=(a,m=360)=>((a%m)+m)%m;
 // ---- 설정 ----
-const DEF={declOn:false,decl:-8,gapSan:1.5,gapBun:1,kongL:[3,6],hidden:[],pan:true,gps:false,wake:true,autoCompass:true,dev:'',sync:null,site:'',shown:'',siteUp:false};   // shown: 盤에 불러온 터, siteUp: 방위도를 向 위로
+const DEF={declOn:false,decl:-8,gapSan:1.5,gapBun:1,kongL:[3,6],hidden:[],pan:true,gps:false,wake:true,autoCompass:true,dev:'',sync:null,site:'',shown:'',siteUp:true};   // shown: 盤에 불러온 터, siteUp: 방위도를 向 위로
 let S=Object.assign({},DEF);
 try{Object.assign(S,JSON.parse(localStorage.getItem('nagyeong.set')||'{}'));}catch(e){}
+if(!S.siteUp2){S.siteUp=true;S.siteUp2=1;}   // 0.7.3: 向 위로를 기본으로 바꿈. 예전 기본값(꺼짐)이 저장된 기기도 한 번은 켬
 function saveS(){try{localStorage.setItem('nagyeong.set',JSON.stringify(S));}catch(e){}}
 // ---- 상태 ----
 let LAYERS=EMBEDDED_LAYERS, layerG={}, hl, hlCell, kongG, siteG, bandsOn=true;
@@ -480,12 +495,12 @@ function renderRead(az,za,all){
 let curTab=null;
 function openTab(t,keep){const body=document.body;  // keep: 코드에서 여는 경우 — 이미 열려 있어도 닫지 않음
   if(!keep&&t===curTab&&body.classList.contains('open')){closeDrawer();return;}
-  curTab=t; body.classList.add('open');
+  curTab=t; body.classList.add('open'); body.classList.toggle('t-site',t==='site');
   document.querySelectorAll('#tabs button[data-tab],footer .tabbtn').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
   document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));
   if(t==='read') apply(); if(t==='layers') renderLayers(); if(t==='rec') renderRec(); if(t==='site') renderSite(); if(t==='set') renderSet(); if(t==='find') $('findIn').focus();
 }
-function closeDrawer(){document.body.classList.remove('open');document.querySelectorAll('#tabs button[data-tab],footer .tabbtn').forEach(b=>b.classList.remove('on'));}
+function closeDrawer(){document.body.classList.remove('open','t-site');document.querySelectorAll('#tabs button[data-tab],footer .tabbtn').forEach(b=>b.classList.remove('on'));}
 document.querySelectorAll('#tabs button[data-tab],footer .tabbtn').forEach(b=>b.addEventListener('click',()=>openTab(b.dataset.tab)));
 $('bClose').addEventListener('click',closeDrawer);
 window.addEventListener('hashchange',()=>{const m=location.hash.match(/az=(-?[\d.]+)/); if(m&&Math.abs(mod(+m[1])-azNow())>0.05){if(sensor)stopSensor();setAz(+m[1]);}});
@@ -804,7 +819,8 @@ async function openAim(){if(aimOn)return;if(!hasSensors()){msg.textContent='조�
   setTimeout(()=>{if(aimOn&&aimRaw===null)$('aimMsg').textContent='방위 센서 값이 들어오지 않습니다. 이 기기·브라우저에서는 조준 화면을 쓸 수 없습니다.';},3000);
   aimDraw();}
 function closeAim(){if(!aimOn)return;aimOn=false;$('aim').classList.remove('on');cancelAnimationFrame(aimRAF);if(NATIVE_COMPASS)nativeCompass(false);window.removeEventListener('deviceorientationabsolute',onOriAim,true);window.removeEventListener('deviceorientation',onOriAim,true);
-  if(aimStream){aimStream.getTracks().forEach(t=>t.stop());aimStream=null;}if(!sensor)keepAwake(false);}
+  if(aimStream){aimStream.getTracks().forEach(t=>t.stop());aimStream=null;}if(!sensor)keepAwake(false);
+  if(document.body.classList.contains('open')&&curTab==='site')renderSite();}   // 터 화면에서 직접 촬영하고 돌아오면 방위도에 바로 보임
 function kindNote(r,gL){const az=r.az;switch(r.kind){   // gL: 터의 破水로 정한 十二長生 층(없으면 지금 보이는 局)
   case '得水':{const g=gL===undefined?curGuk():gL;return `縫針 ${valAt(20,az)} · 雙山 ${ssOf(az)}`+(g?` · ${g.name.replace('十二長生 ','')} ${valAt(g.n,az)||''}`:'');}
   case '破水':{const g=gukOfAz(az);return `縫針 ${valAt(20,az)} · 雙山 ${ssOf(az)} → ${g||'局 없음(旺·生方)'}`;}
@@ -817,7 +833,7 @@ function aimSave(kind){const h=aimTrue();if(h===null){$('aimMsg').textContent='�
     if(kind==='坐向'){setAz(h);note+=`${valAt(3,r.za)}坐${valAt(3,h)}向`;}
     else if(kind==='破水'){const g=gukOfAz(h);const L=g&&LAYERS.find(l=>JG(l)&&l.name.endsWith(g));if(L)setGuk(L.n);note+=kindNote(r);}
     else{note+=kindNote(r).replace(/<[^>]+>/g,'');if(kind==='得水'&&!curGuk())note+=' · 破水를 먼저 재면 局이 정해집니다';}
-    $('aimMsg').textContent=note;msg.textContent=note;if(document.body.classList.contains('open')&&(curTab==='rec'||curTab==='site'))renderRec();};
+    $('aimMsg').textContent=note;msg.textContent=note;if(document.body.classList.contains('open')){if(curTab==='rec')renderRec();if(curTab==='site')renderSite();}};
   if(S.gps&&navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>{r.lat=p.coords.latitude;r.lon=p.coords.longitude;r.acc=p.coords.accuracy;done();},()=>done(),{timeout:6000,enableHighAccuracy:true});else done();
   aimNeedle=KINDS[kind].n;$('aimNeedle').value=String(aimNeedle);}
 $('bAim').addEventListener('click',openAim);$('aimClose').addEventListener('click',closeAim);
@@ -859,7 +875,7 @@ function renderSite(){const names=siteNames();const sel=$('stSel');
   if(!names.includes(stSite))stSite=names.includes(S.site)?S.site:(names[0]||'');
   sel.innerHTML=names.map(n=>`<option value="${hEsc(n)}"${n===stSite?' selected':''}>${hEsc(n)} (${siteRecs(n).length})</option>`).join('');sel.style.display=names.length?'':'none';
   $('stCur').textContent=S.site?`지금 재는 터: ${S.site}`:'';
-  const box=$('stBox');if(!stSite){box.style.display='none';$('stEmpty').style.display='';$('bSiteAim').style.display=hasSensors()?'':'none';
+  const box=$('stBox');$('siteBar').classList.toggle('on',!!stSite);$('stTop').style.display=stSite?'contents':'none';if(!stSite){box.style.display='none';$('stEmpty').style.display='';$('bSiteAim').style.display=hasSensors()?'':'none';
     const loose=liveRec().filter(r=>!r.site).length;$('stLoose').textContent=loose?`터에 묶이지 않은 기록 ${loose}건 · "새 터"를 만들면 골라 넣을 수 있습니다.`:'';return;}
   box.style.display='';$('stEmpty').style.display='none';
   const info=siteInfo(stSite);drawSiteMap($('stMap'),info);
@@ -920,7 +936,9 @@ $('bSiteNew').addEventListener('click',()=>askText('새 터','터 이름 (예: �
   if(liveRec().some(r=>r.site!==name))addToSite();}));
 $('bSiteAim').addEventListener('click',()=>{closeDrawer();openAim();});
 $('bSiteHere').addEventListener('click',()=>{S.site=stSite;saveS();renderSite();
-  if(hasSensors()&&!aimOn)openAim();else msg.textContent=`지금부터 저장하는 기록은 터 "${stSite}"에 묶입니다. 기록 탭의 "현재 방위 저장"이나 조준을 쓰십시오.`;});
+  msg.textContent=`지금부터 저장하는 기록은 터 "${stSite}"에 묶입니다. 조준이나 기록 탭의 "현재 방위 저장"을 쓰십시오.`;});
+$('bSiteShoot').addEventListener('click',()=>{if(!hasSensors()){msg.textContent='직접 촬영(조준)은 방위 센서·카메라가 있는 폰·패드에서만 됩니다. 이 기기에서는 "기록에서 이 터에 넣기"를 쓰십시오.';return;}
+  S.site=stSite;saveS();renderSite();openAim();});   // 조준의 터 이름 칸이 이 터로 채워져, 잰 값이 바로 이 터에 들어간다
 $('bSiteLoad').addEventListener('click',()=>loadSite(stSite));
 $('bSiteUp').addEventListener('click',()=>{S.siteUp=!S.siteUp;saveS();renderSite();});
 $('bSiteRename').addEventListener('click',()=>askText('터 이름 바꾸기','새 이름',stSite,name=>{if(name===stSite)return;const old=stSite;const rs=REC.filter(r=>r.site===old);   // 지움 표시도 같이 옮겨 삭제 전파가 끊기지 않게
@@ -966,6 +984,24 @@ $('bSiteShare').addEventListener('click',()=>shareRecords(siteAll(),siteFile(stS
 $('bSiteExport').addEventListener('click',()=>offerFile(siteFile(stSite)+'.json',JSON.stringify(exportObj(siteAll(),stSite),null,1)));
 $('bSiteLink').addEventListener('click',()=>copyRecordsLink(siteAll(),`터 "${stSite}"`));
 $('bSiteQr').addEventListener('click',()=>showRecordsQr(siteAll(),`터 "${stSite}" QR`));
+$('bSitePng').addEventListener('click',()=>siteMapPng(stSite));
+// 방위도 PNG: 그려 둔 SVG(색은 모두 속성에 있음)를 흰 바탕 그림에 옮기고 아래에 터 이름·坐向을 적는다
+async function siteMapPng(name){const info=siteInfo(name);if(!info.rs.length){msg.textContent='이 터에 기록이 없습니다.';return;}
+  const svg=$('stMap').cloneNode(true);svg.setAttribute('width',340);svg.setAttribute('height',340);svg.setAttribute('font-family','"Noto Serif KR","Nanum Myeongjo","Apple SD Gothic Neo",serif');
+  svg.querySelectorAll('title').forEach(t=>t.remove());
+  const url='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));
+  const img=new Image();try{await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src=url;});}catch(e){msg.textContent='그림을 만들지 못했습니다.';return;}
+  const k=3,W=380,H=430,cv=document.createElement('canvas');cv.width=W*k;cv.height=H*k;const g=cv.getContext('2d');g.scale(k,k);
+  g.fillStyle='#f6eedb';g.fillRect(0,0,W,H);g.drawImage(img,20,14,340,340);
+  g.fillStyle='#231c18';g.textAlign='center';g.font='600 17px "Noto Serif KR",serif';g.fillText('터 '+name+(info.zv?` · ${valAt(3,info.zv.za)}坐${valAt(3,info.zv.az)}向 ${info.zv.az.toFixed(1)}°`:''),W/2,382);
+  g.font='12px "Noto Serif KR",serif';g.globalAlpha=.7;g.fillText(`得水 ${info.ds.length} · 破水 ${info.ps.length} · 砂 ${info.ss.length}`+(info.guk?` · ${info.guk}`:'')+' · '+fmtT(Date.now()),W/2,404);g.globalAlpha=1;
+  const fname=siteFile(name)+'.png',b64=cv.toDataURL('image/png');
+  if(NATIVE&&NATIVE.saveBase64){const r=NATIVE.saveBase64(fname,b64.split(',')[1],'image/png');msg.textContent=r?('저장했습니다: '+r):'저장하지 못했습니다.';return;}
+  const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+  try{if(!NATIVE&&navigator.canShare){const f=new File([blob],fname,{type:'image/png'});if(navigator.canShare({files:[f]})&&matchMedia('(pointer:coarse)').matches){await navigator.share({files:[f],title:'나경 터 '+name});msg.textContent='방위도를 보냈습니다.';return;}}}
+  catch(e){if(e&&e.name==='AbortError')return;}
+  if(NATIVE){const body=document.createElement('div');body.innerHTML=`<img src="${b64}" style="width:100%;display:block;border-radius:8px" alt=""><p class="note">그림을 길게 눌러 저장하십시오.</p>`;showModal('방위도 PNG',body,[{label:'닫기',fn:closeModal}]);return;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);msg.textContent='방위도를 PNG로 저장했습니다: '+fname;}
 $('bSiteCsv').addEventListener('click',()=>{const rs=siteRecs(stSite);if(!rs.length){msg.textContent='이 터에 기록이 없습니다.';return;}offerFile(siteFile(stSite)+'.csv',csvText(rs));});
 $('siteChip').querySelector('button').addEventListener('click',()=>{S.shown='';saveS();drawSiteMarks();msg.textContent='盤의 터 표시를 지웠습니다.';});
 
