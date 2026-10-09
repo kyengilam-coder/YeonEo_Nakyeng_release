@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>鳶魚 羅經 · 연어 나경</title>
+<meta name="description" content="羅經 23층 나경. 회전·나침반·판독·空亡 경고·기록.">
+<meta name="theme-color" content="#3b1b14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="연어 나경">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --lacquer:#3b1b14; --lacquer-deep:#26100b; --paper:#f1e7cf; --paper-edge:#dccfae;
+  --ink:#231c18; --ink-soft:#5a4a3e; --cinnabar:#c1341f; --gilt:#b99552; --indigo:#1f5fbf;
+  --bg:#e8dcc3; --fg:#2a1a12; --panel:rgba(241,231,207,.92); --panelS:#f3e9d3; --line:rgba(58,27,20,.18); --field:rgba(255,255,255,.55);
+  --gothic:"Apple SD Gothic Neo","Malgun Gothic","맑은 고딕","Noto Sans KR","Noto Sans CJK KR",sans-serif;   /* 화면 글자(머리글·단추·패널)는 고딕, 盤 글자는 명조 */
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#3b1b14; --fg:#f1e7cf; --panel:rgba(38,16,11,.9); --panelS:#2b120c; --line:rgba(241,231,207,.18); --field:rgba(0,0,0,.25); } }
+:root[data-theme="dark"]{ --bg:#3b1b14; --fg:#f1e7cf; --panel:rgba(38,16,11,.9); --panelS:#2b120c; --line:rgba(241,231,207,.18); --field:rgba(0,0,0,.25); }
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:var(--gothic);overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none}
+#app{position:relative;width:100%;height:100%;display:flex;flex-direction:column}
+header{contain:layout;display:grid;grid-template-columns:auto 1fr;grid-template-areas:"t r";align-items:start;padding:8px 16px 4px;gap:4px 12px}
+header h1{grid-area:t}#readout{grid-area:r}
+header h1{font-family:"Noto Serif KR","Nanum Myeongjo",serif;font-size:19px;font-weight:600;margin:0;letter-spacing:.06em;white-space:nowrap}
+header h1 small{font-weight:400;opacity:.75;margin-left:6px;font-size:14px}
+header h1 .by{display:block;font-size:12px;font-weight:400;opacity:.6;letter-spacing:.02em;margin-top:1px}
+#verTag{font-variant-numeric:tabular-nums}
+#updBar{display:none;width:100%;font-size:12.5px;padding:4px 8px;border-radius:8px;background:rgba(185,149,82,.25);align-items:center;gap:6px;flex-wrap:wrap}
+#updBar.on{display:flex}
+#readout{text-align:right;line-height:1.3;font-size:17px;font-variant-numeric:tabular-nums}
+#readout .rl{display:flex;justify-content:flex-end;align-items:baseline;gap:9px;white-space:nowrap}
+#readout .rl b{font-weight:700;color:var(--cinnabar);font-size:19px}
+#readout .rl.zl b{color:var(--indigo)}
+#readout .d{font-size:29px;font-weight:700;width:6.6rem;text-align:right}  /* 向·坐 두 줄의 칸 너비를 같게 해 글자를 세로로 맞춤 */
+#readout .rl b{width:1.4rem;text-align:center}
+#readout .d span{font-size:15px;font-weight:400;opacity:.8;margin-left:2px}
+#readout .zl .d{font-size:21px}
+#readout strong{font-weight:700;font-size:1.18em}   /* 正針·中針·縫針 값(24山) */
+#kong{font-size:14px;opacity:.75;margin-top:2px}
+#kong.on{opacity:1;color:var(--cinnabar);font-weight:600}
+@media (max-width:600px){ header{grid-template-columns:auto 1fr;grid-template-areas:"t k" "v v" "z z";padding:6px 12px 2px} header h1{font-size:15px;align-self:center} #readout{display:contents} #readout .rl{grid-area:v;justify-content:flex-start} #readout .rl.zl{grid-area:z} #kong{grid-area:k;text-align:right;align-self:center;margin:0;font-size:13px} #readout{font-size:16px} #readout .d{font-size:25px;width:5.7rem} #readout .zl .d{font-size:19px} }
+#main{flex:1;display:flex;position:relative;min-height:0}
+#stage{flex:1;position:relative;overflow:hidden;min-width:0;contain:strict}
+#discWrap{position:absolute;inset:0;will-change:transform;transform-origin:50% 50%}   /* 회전·이동·확대는 이 div의 CSS transform: 그려 둔 盤을 GPU가 돌린다. <svg>에 직접 주면 SVG 전체가 매 프레임 다시 배치됨 */
+#stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+#sight{position:absolute;inset:0;pointer-events:none}
+#sight::before,#sight::after{content:"";position:absolute;background:var(--cinnabar);opacity:.85}
+#sight::before{left:50%;top:0;bottom:0;width:1.5px;transform:translateX(calc(-50% + var(--sx,0px)))}   /* --sx·--sy: 盤을 옮긴 만큼(apply) 붉은 선도 盤 가운데를 따라감 */
+#sight::after{top:50%;left:0;right:0;height:1.5px;transform:translateY(calc(-50% + var(--sy,0px)))}
+#sight i{position:absolute;left:50%;transform:translateX(calc(7px + var(--sx,0px)));font-style:normal;font-size:13px;font-weight:700;padding:1px 7px;border-radius:999px;background:var(--panel);color:var(--cinnabar)}
+#sight i.t{top:4px}#sight i.b{bottom:4px;color:var(--indigo)}   /* 向·坐 표지는 선 위가 아니라 선 바로 오른쪽: 가로로 넓은 화면에서 盤 위끝이 화면에 붙어도 선 아래 360° 숫자를 가리지 않게 */
+#tip{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;background:var(--panel);color:var(--fg);padding:6px 14px;border-radius:14px;font-size:14px;max-width:min(92%,520px);text-align:center;pointer-events:none;opacity:0;transition:opacity .2s;line-height:1.35}
+#tip.on{opacity:1}
+#tip small{display:block;font-size:11.5px;opacity:.8;margin-top:2px}
+footer{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 10px 8px;background:var(--panel)}
+button{font:inherit;font-size:15px;padding:7px 12px;border-radius:8px;border:1px solid rgba(185,149,82,.55);background:transparent;color:var(--fg);cursor:pointer}
+button.on{background:var(--gilt);color:#26100b;border-color:var(--gilt)}
+button.sm{font-size:13.5px;padding:5px 9px}
+button.danger{background:var(--cinnabar);color:#fff;border-color:var(--cinnabar)}
+label.z{display:flex;align-items:center;gap:6px;font-size:15px;margin-left:auto}
+input[type=range]{width:100px;accent-color:var(--gilt)}
+input[type=text],input[type=number]{font:inherit;font-size:13px;padding:5px 8px;border-radius:7px;border:1px solid var(--line);background:var(--field);color:var(--fg);-webkit-user-select:text;user-select:text}
+input[type=number]{width:5.5em}
+select{font:inherit;font-size:13px;padding:4px 6px;border-radius:7px;border:1px solid var(--line);background:var(--field);color:var(--fg)}
+#msg{font-size:13px;opacity:.8;width:100%}
+text{font-family:"Noto Serif KR","Nanum Myeongjo","Apple SD Gothic Neo",serif;fill:var(--ink)}
+.deg text{font-family:var(--gothic)}   /* 360° 눈금 숫자는 고딕 */
+.hl{fill:var(--gilt);opacity:.28;pointer-events:none}
+#disc.nopan .band{display:none}
+.layer.off{display:none}
+/* drawer */
+#drawer{display:none;flex-direction:column;background:var(--panel);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);min-height:0}
+body.open #drawer{display:flex}
+@media (min-width:900px){ #drawer{width:400px;border-left:1px solid var(--line)} }
+@media (max-width:899px){ #drawer{position:absolute;left:0;right:0;bottom:0;max-height:58%;border-top:1px solid var(--line);border-radius:14px 14px 0 0;box-shadow:0 -6px 18px rgba(0,0,0,.18)}
+  body.open footer{display:none}   /* 패널이 열리면 아래 나경 메뉴를 숨기고, "나경 복귀"로 돌아오면 다시 보임 */
+  body.t-site #drawer,body.t-rec #drawer{top:0;max-height:none;border-radius:0} }   /* 터 화면은 방위도가 다 보이게 盤 자리를 모두 씀 */
+#tabs{display:flex;gap:4px;padding:8px 10px 0;flex-wrap:wrap;align-items:center}
+#tabs button{border-color:transparent;background:transparent;padding:5px 9px;font-size:15px}
+#tabs button.on{background:var(--gilt);color:#26100b}
+#tabs .x{margin-left:auto;font-size:13px;line-height:1.2;padding:5px 10px;border-color:rgba(185,149,82,.55)}
+#siteBar{display:none;grid-template-columns:repeat(4,auto);gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+#siteBar button{padding:9px 4px;font-size:13.5px;line-height:1.25;white-space:nowrap}   /* 칸 너비를 글자에 맞춰(auto) 단추 글자를 한 줄로 */
+body.t-site #siteBar.on{display:grid}
+body.t-site #stMap{max-width:440px}
+@media (max-width:600px){ #tabs{gap:0;padding:6px 6px 0} #tabs button{padding:5px 6px} #tabs .x{padding:4px 7px} #p-site{padding:8px 10px 14px} }
+/* 터 화면 위 두 줄: 줄마다 한 줄로. 좁으면 글자를 조금 줄이고, 아래 줄은 단추 안에서 두 줄로 꺾임 */
+#stHead{flex-wrap:wrap;gap:4px} #stHead label{display:flex;align-items:center;gap:4px;flex:1 1 auto;min-width:0} #stSel{flex:1 1 auto;min-width:4.5em;max-width:16em;font-size:14px}
+#stTop{display:flex;flex:1 1 100%;flex-wrap:wrap;gap:4px}   /* 터 고르기·새 터 아래 줄: 이 터에서 재기·이름 바꾸기·向 위로 (글자를 키워 한 줄에 다 들어가지 않음) */
+#stHead button.sm{white-space:nowrap;padding:5px 6px;flex:none}
+#stAct{flex-wrap:wrap;gap:4px} #stAct button.sm{white-space:nowrap;padding:5px 7px}   /* 단추 글자는 한 줄로 두고, 자리가 모자라면 단추째 다음 줄로 */
+@media (max-width:380px){ #siteBar{gap:4px;padding-left:6px;padding-right:6px} #siteBar button{font-size:12.5px;padding:9px 3px} #stHead button.sm,#stAct button.sm{font-size:12.5px;padding:5px 5px} #stHead label{font-size:0} #stHead label select{font-size:13px} }
+@media (max-width:340px){ #siteBar button{font-size:11.5px;padding:9px 2px} }
+.pane{display:none;padding:8px 14px 14px;overflow:auto;-webkit-overflow-scrolling:touch;font-size:13px;line-height:1.45}
+.pane.on{display:block}
+.pane h3{font-size:13px;margin:10px 0 6px;opacity:.75;font-weight:600}
+.pane p{margin:4px 0}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
+table.rd{width:100%;border-collapse:collapse;font-size:12.5px}
+table.rd th{font-weight:600;opacity:.7;text-align:left;padding:2px 4px;border-bottom:1px solid var(--line)}
+table.rd td{padding:2px 4px;border-bottom:1px dotted var(--line);white-space:nowrap}
+table.rd td.n{opacity:.8}
+table.rd td.v{font-weight:600;font-size:13.5px}
+table.rd tr.dim{opacity:.4}
+table.rd tr.main td{background:rgba(185,149,82,.14)}
+.warn{color:var(--cinnabar);font-weight:600}
+.ok{opacity:.7}
+ul.ls{list-style:none;margin:4px 0;padding:0}
+ul.ls li{padding:5px 6px;border-bottom:1px dotted var(--line);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+ul.ls li:hover{background:rgba(185,149,82,.12)}
+ul.ls li .g{flex:1;min-width:120px;cursor:pointer}
+ul.ls li small{opacity:.7;display:block}
+ul.ls li .acts{display:flex;gap:5px;flex-shrink:0}
+.pane h3.xh{font-family:"Dotum","돋움","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;font-weight:700;font-size:14.5px;opacity:1;margin:14px 0 6px;padding-bottom:3px;border-bottom:1.5px solid var(--gilt)}   /* 기록 탭 구역 머리: 돋움체로 강조 */
+#recList li.grp{display:block;padding:8px 2px 3px;border-bottom:1px solid var(--line);font-weight:600;font-size:13px;opacity:.85;cursor:default}
+#recList li.grp:hover{background:none}
+#recList li.grp span{font-weight:400;opacity:.7;margin-left:4px}
+#recList li.rc{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:6px 2px;flex-wrap:nowrap}
+#recList li.rc .g{min-width:0}
+#recList li.rc .v{display:flex;align-items:baseline;gap:6px}
+#recList li.rc .v .az{margin-left:auto;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+#recList li.rc .acts{flex-direction:row;align-self:center}
+#recList li.rc .acts button{font-size:12px;padding:4px 8px}
+#syncLine label.chk{font-weight:600}
+/* 폰: 기록 글자를 키우고, 서랍을 불투명하게 해 아래 盤이 비치지 않게, 단추는 세로로 쌓아 글이 넓게 */
+@media (max-width:899px){ #drawer{background:var(--panelS)} .pane{font-size:15px;line-height:1.5} ul.ls li{padding:8px 2px} ul.ls li .g{min-width:0} ul.ls li small{font-size:13px;opacity:.8;margin-top:2px} ul.ls li .acts{flex-direction:column} ul.ls li .acts button{font-size:13px;padding:5px 9px} #recList li.rc .acts{flex-direction:row} #recList li.rc .acts button{font-size:12px;padding:4px 7px} .kd{font-size:12.5px;padding:1px 7px} }
+.chk{display:flex;align-items:center;gap:6px;padding:3px 0}
+.chk input{accent-color:var(--gilt)}
+.desc{opacity:.85;font-size:12.5px;margin:2px 0 8px 0}
+table.help{border-collapse:collapse;width:100%;font-size:12.5px}
+table.help td{padding:3px 4px;border-bottom:1px dotted var(--line);vertical-align:top}
+table.help td:first-child{white-space:nowrap;font-weight:600;width:42%}
+kbd{font:inherit;font-size:11.5px;padding:0 5px;border:1px solid var(--line);border-radius:4px;background:var(--field)}
+.note{font-size:12px;opacity:.7}
+.note a{color:inherit}
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;align-items:center;justify-content:center;padding:16px}
+#modal.on{display:flex}
+#modal .box{background:var(--panel);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:var(--fg);border-radius:14px;max-width:440px;width:100%;max-height:92vh;overflow:auto;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.3);font-size:13px;line-height:1.45}
+#modal .mt{font-weight:600;font-size:14px;margin-bottom:8px}
+#modal .mf{display:flex;gap:6px;justify-content:flex-end;margin-top:10px}
+#modal textarea{font:inherit;font-size:12.5px;padding:6px 8px;border-radius:7px;border:1px solid var(--line);background:var(--field);color:var(--fg);-webkit-user-select:text;user-select:text}
+body.drop::after{content:"기록 파일을 여기에 놓으십시오";position:fixed;inset:12px;border:3px dashed var(--gilt);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(185,149,82,.12);pointer-events:none;z-index:60}
+h3.h{font-size:13px;margin:10px 0 6px;opacity:.75;font-weight:600}
+.kd{display:inline-block;font-size:11px;padding:0 6px;border-radius:999px;background:var(--gilt);color:#26100b;margin-right:5px;vertical-align:1px}
+.kd.k-1{background:#c7daef}.kd.k-2{background:#f2c7bd}.kd.k-3{background:#cde4c1}
+#aim{display:none;position:fixed;inset:0;background:#000;z-index:40;color:#f1e7cf;font-size:13px;-webkit-user-select:none;user-select:none}
+#aim.on{display:block}
+#aimV{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#111}
+.aim-top{position:absolute;top:0;left:0;right:0;padding:calc(8px + env(safe-area-inset-top,0px)) 14px 8px;background:linear-gradient(rgba(38,16,11,.85),rgba(38,16,11,0));text-shadow:0 1px 2px #000}
+.aim-hd{display:flex;align-items:baseline;gap:10px}
+#aimDeg{font-size:34px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer}
+.aim-n{display:flex;gap:8px;font-size:13.5px;line-height:1.4}.aim-n b{color:#f2d79a;min-width:2.6em}
+#aimTape{position:absolute;left:0;right:0;top:calc(128px + env(safe-area-inset-top,0px));height:64px;width:100%}
+.aim-line{position:absolute;left:50%;top:calc(192px + env(safe-area-inset-top,0px));bottom:150px;width:2px;background:var(--cinnabar);transform:translateX(-50%);box-shadow:0 0 4px #000}
+.aim-bottom{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(rgba(38,16,11,0),rgba(38,16,11,.92))}
+.aim-bottom button{color:#f1e7cf;border-color:rgba(241,231,207,.5)}.aim-bottom button[data-kind]{font-weight:600;font-size:14px}
+.aim-bottom input,.aim-bottom select{background:rgba(0,0,0,.35);color:#f1e7cf;border-color:rgba(241,231,207,.4)}
+#aimAcc.warn{color:#ff9a86}
+/* 터: 방위도·盤 위 표시 */
+#stMap{display:block;width:100%;max-width:340px;height:auto;margin:6px auto}
+#stSum div{margin:3px 0}
+#siteChip{display:none;position:absolute;left:10px;top:8px;max-width:70%;background:var(--panel);border-radius:999px;padding:3px 4px 3px 10px;font-size:12.5px;align-items:center;gap:4px;box-shadow:0 1px 4px rgba(0,0,0,.15);z-index:2}
+#siteChip.on{display:flex}
+#siteChip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#siteChip button{padding:0 7px;font-size:15px;line-height:1.3;border:none}
+/* 기록 고르기 창(기록 넣기·터로 묶기): 줄 전체를 눌러 고르고, 고른 줄은 색으로 표시 */
+.pk-top{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0 6px}
+.pk-top .n{margin-left:auto;font-weight:600}
+ul.pick{list-style:none;margin:0;padding:0;max-height:46vh;overflow:auto;-webkit-overflow-scrolling:touch;border-top:1px solid var(--line)}
+ul.pick li{display:flex;gap:10px;align-items:flex-start;padding:8px 6px;border-bottom:1px dotted var(--line);cursor:pointer}
+ul.pick li.sel{background:rgba(185,149,82,.2)}
+ul.pick li input{width:20px;height:20px;margin:2px 0 0;flex-shrink:0;accent-color:var(--gilt)}
+ul.pick li .t{flex:1;min-width:0}
+ul.pick li small{display:block;opacity:.75}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:2px 0 6px}
+.chips button{font-size:12px;padding:3px 9px;border-radius:999px}
+#groupMap{display:block;width:min(72vw,280px);height:auto;margin:4px auto}
+#aimGroup.on{background:var(--gilt);color:#26100b;border-color:var(--gilt);font-weight:600}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <h1>羅經<small id="nLayers">二十三層</small><span class="by">by 鳶飛魚躍<span id="verTag"></span></span></h1>
+  <div id="readout">
+    <div class="rl"><b>向</b><span class="d" id="deg">0.0<span>°</span></span><span id="san">正針 子 · 中針 子 · 縫針 壬</span></div>
+    <div class="rl zl"><b>坐</b><span class="d" id="zdeg">180.0<span>°</span></span><span id="zsan"></span></div>
+    <div id="kong"></div>
+  </div>
+</header>
+<div id="main">
+<div id="stage">
+  <div id="discWrap"><svg id="svg" viewBox="-540 -540 1080 1080" xmlns="http://www.w3.org/2000/svg"><g id="view"><g id="disc"></g></g></svg></div>
+  <div id="sight"><i class="t">向</i><i class="b">坐</i></div>
+  <div id="tip"></div>
+  <div id="siteChip"><span></span><button title="盤에서 터 표시 지우기">×</button></div>
+</div>
+<aside id="drawer">
+  <div id="tabs">
+    <button data-tab="site">터</button><button data-tab="rec">기록</button><button data-tab="read">판독</button><button data-tab="find">찾기</button><button data-tab="set">설정</button><button data-tab="help">도움말</button>
+    <button class="x" id="bClose" title="패널을 닫고 나경 화면으로 (Esc)">나경 복귀</button>
+  </div>
+  <section class="pane" id="p-read">
+    <div class="row"><label>向 각도 <input type="number" id="azIn" min="0" max="360" step="0.1" inputmode="decimal"></label><button class="sm" id="bAz">적용</button><button class="sm" id="bLink">링크 복사</button></div>
+    <div id="kongDetail" class="note"></div>
+    <table class="rd"><thead><tr><th>層</th><th>向</th><th>坐</th></tr></thead><tbody id="rdBody"></tbody></table>
+  </section>
+  <section class="pane" id="p-layers">
+    <div class="row"><button class="sm" id="bAllOn">모두 보기</button><button class="sm" id="bMainOnly">24山만</button><label class="chk"><input type="checkbox" id="cDeg">360° 눈금</label><label class="chk"><input type="checkbox" id="cPan">三盤 색 (<span style="background:#f2d79a;padding:0 5px">地</span> <span style="background:#cde4c1;padding:0 5px">人</span> <span style="background:#c7daef;padding:0 5px">天</span>)</label></div>
+    <div id="layerList"></div>
+  </section>
+  <section class="pane" id="p-find">
+    <div class="row"><input type="text" id="findIn" placeholder="예: 丙午, 午, 壬子, 中孚" style="flex:1"><button class="sm" id="bFindClear">지움</button></div>
+    <p class="note">칸의 글자를 입력하면 해당 칸을 찾아 강조하고, 누르면 그 칸이 붉은 선 아래로 오도록 盤을 돌립니다.</p>
+    <ul class="ls" id="findList"></ul>
+  </section>
+  <section class="pane" id="p-rec">
+    <div class="row"><input type="text" id="siteIn" placeholder="터 이름" style="width:6em;min-width:0"><input type="text" id="memoIn" placeholder="메모" style="flex:1;min-width:4em"><button class="sm" id="bSave">현재 방위 저장</button></div>
+    <div class="row"><label class="chk"><input type="checkbox" id="cGps">위치(GPS)도 함께 저장</label><button class="sm" id="bCsv">CSV 내려받기</button></div>
+    <h3 class="xh">다른 기기와 주고받기</h3>
+    <div class="row"><button class="sm" id="bShare">보내기</button><button class="sm" id="bExport">파일 내보내기</button><button class="sm" id="bImport">파일 가져오기</button><button class="sm" id="bRecLink">링크 복사</button><button class="sm" id="bQrShow">QR 보이기</button><button class="sm" id="bQrScan">QR 읽기</button><button class="sm" id="bPaste">붙여넣기</button></div>
+    <div id="syncLine" class="row"></div>
+    <input type="file" id="fileIn" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden><input type="file" id="qrImgIn" accept="image/*" capture="environment" hidden>
+    <h3 class="xh">기록 목록</h3>
+    <div class="row"><label class="note">터 <select id="siteSel"><option value="">전체</option></select></label><span class="note" id="recCount"></span><button class="sm" id="bRecSite" title="같은 터의 기록을 방위도로 봄">터 화면</button></div>
+    <ul class="ls" id="recList"></ul>
+  </section>
+  <section class="pane" id="p-site">
+    <div class="row" id="stHead"><label class="note">터 <select id="stSel"></select></label><button class="sm" id="bSiteNew">새 터</button><span id="stTop"><button class="sm" id="bSiteHere" title="지금부터 조준·기록 저장을 이 터에 묶음">이 터에서 재기</button><button class="sm" id="bSiteRename">이름 바꾸기</button><button class="sm" id="bSiteUp" title="방위도를 向이 위로 오도록 돌림">向 위로</button></span></div>
+    <div id="stEmpty"><p class="note">아직 터가 없습니다. 조준 화면에서 坐向·得水·破水·砂를 잰 뒤 <b>터로 묶기</b>를 누르거나, "새 터"를 만들어 기존 기록을 넣으십시오.</p>
+      <div class="row"><button class="sm" id="bSiteAim">조준으로 재기</button><span class="note" id="stLoose"></span></div></div>
+    <div id="stBox">
+      <div class="row" id="stAct"><button class="sm" id="bSiteShoot" title="조준을 켜서 직접 겨누어 잰 값을 이 터에 넣음">직접 촬영해 이 터에 넣기</button><button class="sm" id="bSiteAdd" title="기록 목록에서 하나 이상 골라 이 터에 넣음">기록에서 이 터에 넣기</button><button class="sm" id="bSiteLoad" title="坐向으로 盤을 돌리고 得水·破水·砂를 盤 위에 표시">盤에 불러오기</button></div>
+      <div class="note" id="stCur"></div>
+      <svg id="stMap" viewBox="-170 -170 340 340" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="stSum"></div>
+      <h3>이 터만 보내기</h3>
+      <div class="row"><button class="sm" id="bSiteShare">보내기</button><button class="sm" id="bSiteExport">파일 내보내기</button><span class="note">PNG·링크·QR·CSV는 아래 단추</span></div>
+      <h3>이 터의 기록 <span id="stCount" class="note"></span></h3>
+      <p class="note">잘못 넣은 기록은 아래 "빼기"로 이 터에서 뺍니다(기록은 남음).</p>
+      <ul class="ls" id="stList"></ul>
+    </div>
+  </section>
+  <section class="pane" id="p-set">
+    <h3>眞北 보정 (磁偏角)</h3>
+    <div class="row"><label class="chk"><input type="checkbox" id="cDecl">나침반 모드에서 眞北 기준으로 보정</label></div>
+    <div class="row"><label>磁偏角 <input type="number" id="declIn" step="0.1" inputmode="decimal">°</label><span class="note">서쪽 편각은 음수. 한국은 대략 −8° 안팎이며 지역·연도에 따라 다릅니다.</span></div>
+    <h3>空亡 경고</h3>
+    <div class="row"><label>大空亡 폭(24山 경계) <input type="number" id="gapSan" step="0.1" min="0" inputmode="decimal">°</label></div>
+    <div class="row"><label>小空亡 폭(分金 경계) <input type="number" id="gapBun" step="0.1" min="0" inputmode="decimal">°</label></div>
+    <div id="kongLayers"></div>
+    <p class="note">경계선에서 위 폭 안에 붉은 선이 들면 空亡으로 표시합니다. 폭은 학파와 센서 오차를 감안해 조정하십시오.</p>
+    <h3>기기 이름</h3>
+    <div class="row"><input type="text" id="devIn" style="flex:1"><span class="note">기록마다 어느 기기에서 쟀는지 남깁니다.</span></div>
+    <h3>기록 자동 동기화 (GitHub Gist)</h3>
+    <div id="syncOff">
+      <p class="note">GitHub 계정의 비공개 Gist 하나에 기록을 두고, 이 앱을 쓰는 모든 기기가 같은 기록을 보게 합니다. 토큰은 이 기기에만 저장됩니다.</p>
+      <div class="row"><input type="password" id="tokenIn" placeholder="GitHub 토큰 (gist 권한)" style="flex:1" autocomplete="off"><button class="sm" id="bSyncConnect">연결</button></div>
+      <p class="note">토큰 만들기: github.com → Settings → Developer settings → Personal access tokens → <b>Tokens (classic)</b> → Generate new token → <b>gist</b>만 체크. 다른 기기는 토큰을 다시 넣지 말고, 연결된 기기의 "연결 QR"을 읽으면 됩니다.</p>
+    </div>
+    <div id="syncOnBox" style="display:none">
+      <div class="row"><label class="chk"><input type="checkbox" id="cAutoSync">저장·삭제 뒤와 앱을 열 때 자동으로 맞춤</label></div>
+      <div class="row"><button class="sm" id="bSyncNow">지금 동기화</button><button class="sm" id="bSyncQr">연결 QR</button><button class="sm" id="bSyncCode">연결 코드 복사</button><button class="sm" id="bSyncOff">연결 끊기</button></div>
+      <p class="note" id="syncStatus"></p>
+    </div>
+    <h3>버전</h3>
+    <div class="row"><span id="verRow" class="note"></span><button class="sm" id="bUpd">새 버전 확인</button><a class="note" href="#" id="relLink">내려받기 페이지</a></div>
+    <div class="row" id="autoUpdRow" style="display:none"><label class="chk"><input type="checkbox" id="cAutoUpd">자동 업데이트 (새 버전을 앱이 스스로 받아 설치)</label></div>
+    <h3>화면</h3>
+    <div class="row"><label class="chk"><input type="checkbox" id="cAutoCompass">앱을 열 때 나침반 자동 켜기 (방위 센서가 있는 기기)</label></div>
+    <div class="row"><label class="chk"><input type="checkbox" id="cWake">나침반 모드에서 화면 꺼짐 방지</label></div>
+    <div class="row"><button class="sm" id="bClearStore">저장된 설정·기록 모두 지우기</button></div>
+  </section>
+  <section class="pane" id="p-help">
+    <table class="help">
+      <tr><td>한 손가락 끌기 / 왼쪽 버튼 끌기</td><td>盤 회전</td></tr>
+      <tr><td>두 손가락 벌리기 / 휠</td><td>확대·축소</td></tr>
+      <tr><td>오른쪽 버튼 끌기 / <kbd>Space</kbd>+끌기</td><td>화면 이동</td></tr>
+      <tr><td>칸을 짚기(탭)</td><td>층 이름·값·설명 표시</td></tr>
+      <tr><td><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd></td><td>화면 이동 (<kbd>Shift</kbd> 크게)</td></tr>
+      <tr><td><kbd>[</kbd> <kbd>]</kbd></td><td>0.5° 회전 (<kbd>Shift</kbd> 7.5°)</td></tr>
+      <tr><td><kbd>+</kbd> <kbd>−</kbd></td><td>확대·축소</td></tr>
+      <tr><td><kbd>?</kbd></td><td>이 도움말</td></tr>
+      <tr><td><kbd>Esc</kbd> / 나경 복귀</td><td>패널을 닫고 나경 화면으로</td></tr>
+      <tr><td>이동 자유 / 가로만 / 세로만 (<kbd>H</kbd> <kbd>V</kbd>)</td><td>화면 이동 방향을 한 축으로 고정. 고정 중에는 끌기가 이동이 됨</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+이동 끌기</td><td>더 많이 움직인 축으로만 이동. 오른쪽 버튼에는 Shift 대신 Ctrl을 쓰십시오(Shift+오른쪽 버튼은 브라우저 메뉴가 뜸)</td></tr>
+      <tr><td>가운데로 (<kbd>C</kbd>)</td><td>확대·회전은 그대로 두고 盤을 화면 가운데로</td></tr>
+      <tr><td>초기화</td><td>회전 0°, 확대 1배, 가운데로</td></tr>
+      <tr><td>조준</td><td>카메라로 목표를 겨누어 三針 방위를 읽고 坐向·得水·破水·砂를 저장. 破水를 재면 十二長生 局이 정해짐. 숫자를 누르면 값 고정</td></tr>
+      <tr><td>터로 묶기</td><td>조준 화면에서 坐向·得水·破水·砂를 잰 뒤 누르면, 이번에 잰 기록을 이름 하나로 묶고 방위도를 바로 보여 줌</td></tr>
+      <tr><td>터</td><td>같은 터에서 잰 기록을 묶어 坐向을 가운데 둔 방위도로 봄. 새 터 만들기, 기록 넣기·빼기, 터만 보내기(파일·링크·QR·CSV). "盤에 불러오기"는 坐向으로 盤을 돌리고 得水·破水·砂를 盤 둘레에 표시</td></tr>
+      <tr><td>기록 주고받기</td><td>보내기(공유 창)·파일·링크·QR·붙여넣기. 같은 기록은 수정이 늦은 쪽을 남기고 합침</td></tr>
+      <tr><td>자동 동기화</td><td>설정에서 GitHub 토큰으로 연결하면 모든 기기가 같은 기록을 봄</td></tr>
+      <tr><td>회전 잠금</td><td>한 손가락 끌기를 이동으로 바꿈</td></tr>
+      <tr><td>나침반</td><td>센서로 盤이 磁北을 따라 돌아감. 센서가 없으면 자동으로 꺼짐</td></tr>
+    </table>
+    <p class="note">주소 뒤에 <code>#az=187.5</code>처럼 각도를 붙이면 그 방위로 열립니다. 한 번 연 뒤에는 오프라인에서도 열립니다(설치형 브라우저·GitHub Pages).</p>
+  </section>
+  <div id="siteBar"><button id="bSitePng" title="방위도를 그림 파일로 저장">PNG로 내보내기</button><button id="bSiteLink" title="이 터의 기록을 담은 링크를 복사">링크 복사</button><button id="bSiteQr" title="이 터의 기록을 QR로 보여 다른 기기가 읽게 함">QR 보이기</button><button id="bSiteCsv" title="이 터의 기록을 표(CSV) 파일로 저장">CSV 내려받기</button></div>
+</aside>
+</div>
+<div id="aim">
+  <video id="aimV" playsinline muted autoplay></video>
+  <div class="aim-top">
+    <div class="aim-hd"><span id="aimDeg" title="누르면 고정">--.-°</span><span id="aimAcc" class="note"></span></div>
+    <div class="aim-n"><b>正針</b><span id="aimJ"></span></div>
+    <div class="aim-n"><b>中針</b><span id="aimI"></span></div>
+    <div class="aim-n"><b>縫針</b><span id="aimC"></span></div>
+  </div>
+  <canvas id="aimTape"></canvas>
+  <div class="aim-line"></div>
+  <div class="aim-bottom">
+    <div class="row"><input type="text" id="aimSite" placeholder="지금 재는 터 이름" style="flex:1"><select id="aimNeedle"><option value="3">正針 눈금</option><option value="12">中針 눈금</option><option value="20">縫針 눈금</option></select></div>
+    <div class="row"><button data-kind="坐向">坐向</button><button data-kind="得水">得水</button><button data-kind="破水">破水</button><button data-kind="砂">砂</button><button id="aimGroup" title="이번에 잰 기록을 한 터로 묶음">터로 묶기</button><button id="aimClose" style="margin-left:auto">닫기</button></div>
+    <div id="aimMsg" class="note"></div>
+  </div>
+</div>
+<div id="modal"><div class="box"><div class="mt"></div><div class="mb"></div><div class="mf"></div></div></div>
+<footer>
+  <button id="bSensor">나침반</button>
+  <button id="bAim" title="카메라로 겨누어 방위를 재고 坐向·得水·破水·砂를 저장">조준</button>
+  <button class="tabbtn" data-tab="site">터</button>
+  <button class="tabbtn" data-tab="rec">기록</button>
+  <button id="bLock">회전 잠금</button>
+  <button id="bReset">초기화</button>
+  <button id="bCenter" title="확대·회전은 그대로 두고 盤을 화면 가운데로 (C)">가운데로</button>
+  <button id="bAxis" title="화면 이동 방향을 가로 또는 세로로 고정">이동 자유</button>
+  <button class="tabbtn" data-tab="read">판독</button>
+  <button class="tabbtn" data-tab="layers">층</button>
+  <button class="tabbtn" data-tab="find">찾기</button>
+  <button class="tabbtn" data-tab="set">설정</button>
+  <button class="tabbtn" data-tab="help">?</button>
+  <label class="z">확대 <input id="zoom" type="range" min="1" max="6" step="0.05" value="1"></label>
+  <div id="updBar"></div>
+  <div id="msg">끌어서 盤 회전 · 오른쪽 버튼(또는 Space) 끌기로 이동 · 방향키 이동 · [ ] 회전 · +/− 확대 · 이동 자유/가로/세로 · 층을 짚으면 이름 표시</div>
+</footer>
+</div>
+<script>
+// 층 데이터. layers.json이 원본이며, 아래 한 줄은 tools/embed_layers.py로 다시 채웁니다.
+const EMBEDDED_LAYERS = [{"n": 1, "name": "八曜風", "r0": 62.05, "r1": 75.67, "cells": [[352.5, 15.0, "辰"], [7.5, 15.0, ""], [22.5, 15.0, ""], [37.5, 15.0, "寅"], [52.5, 15.0, ""], [67.5, 15.0, ""], [82.5, 15.0, "申"], [97.5, 15.0, ""], [112.5, 15.0, ""], [127.5, 15.0, "酉"], [142.5, 15.0, ""], [157.5, 15.0, ""], [172.5, 15.0, "亥"], [187.5, 15.0, ""], [202.5, 15.0, ""], [217.5, 15.0, "卯"], [232.5, 15.0, ""], [247.5, 15.0, ""], [262.5, 15.0, "巳"], [277.5, 15.0, ""], [292.5, 15.0, ""], [307.5, 15.0, "午"], [322.5, 15.0, ""], [337.5, 15.0, ""]]}, {"n": 2, "name": "黃泉水", "r0": 75.67, "r1": 101.21, "cells": [[352.5, 15.0, ""], [7.5, 15.0, "艮"], [22.5, 15.0, ""], [37.5, 15.0, "甲癸"], [52.5, 15.0, ""], [67.5, 15.0, "艮"], [82.5, 15.0, ""], [97.5, 15.0, "巽"], [112.5, 15.0, ""], [127.5, 15.0, "乙丙"], [142.5, 15.0, ""], [157.5, 15.0, "巽"], [172.5, 15.0, ""], [187.5, 15.0, "坤"], [202.5, 15.0, ""], [217.5, 15.0, "丁庚"], [232.5, 15.0, ""], [247.5, 15.0, "坤"], [262.5, 15.0, ""], [277.5, 15.0, "乾"], [292.5, 15.0, ""], [307.5, 15.0, "辛壬"], [322.5, 15.0, ""], [337.5, 15.0, "乾"]]}, {"n": 3, "name": "地盤正針", "r0": 101.21, "r1": 126.18, "cells": [[352.5, 15.0, "子"], [7.5, 15.0, "癸"], [22.5, 15.0, "丑"], [37.5, 15.0, "艮"], [52.5, 15.0, "寅"], [67.5, 15.0, "甲"], [82.5, 15.0, "卯"], [97.5, 15.0, "乙"], [112.5, 15.0, "辰"], [127.5, 15.0, "巽"], [142.5, 15.0, "巳"], [157.5, 15.0, "丙"], [172.5, 15.0, "午"], [187.5, 15.0, "丁"], [202.5, 15.0, "未"], [217.5, 15.0, "坤"], [232.5, 15.0, "申"], [247.5, 15.0, "庚"], [262.5, 15.0, "酉"], [277.5, 15.0, "辛"], [292.5, 15.0, "戌"], [307.5, 15.0, "乾"], [322.5, 15.0, "亥"], [337.5, 15.0, "壬"]]}, {"n": 4, "name": "淨陰淨陽", "r0": 126.18, "r1": 139.8, "cells": [[352.5, 15.0, "陽"], [7.5, 15.0, "陽"], [22.5, 15.0, "陰"], [37.5, 15.0, "陰"], [52.5, 15.0, "陽"], [67.5, 15.0, "陽"], [82.5, 15.0, "陰"], [97.5, 15.0, "陽"], [112.5, 15.0, "陽"], [127.5, 15.0, "陰"], [142.5, 15.0, "陰"], [157.5, 15.0, "陰"], [172.5, 15.0, "陽"], [187.5, 15.0, "陰"], [202.5, 15.0, "陰"], [217.5, 15.0, "陽"], [232.5, 15.0, "陽"], [247.5, 15.0, "陰"], [262.5, 15.0, "陰"], [277.5, 15.0, "陰"], [292.5, 15.0, "陽"], [307.5, 15.0, "陽"], [322.5, 15.0, "陰"], [337.5, 15.0, "陽"]]}, {"n": 5, "name": "天星二十四星", "r0": 139.8, "r1": 165.53, "cells": [[352.5, 15.0, "陽光"], [7.5, 15.0, "陰光"], [22.5, 15.0, "天廚"], [37.5, 15.0, "天市"], [52.5, 15.0, "功曹"], [67.5, 15.0, "陽璣"], [82.5, 15.0, "陽衡"], [97.5, 15.0, "天官"], [112.5, 15.0, "亢金"], [127.5, 15.0, "陽璇"], [142.5, 15.0, "赤蛇"], [157.5, 15.0, "太微"], [172.5, 15.0, "陽權"], [187.5, 15.0, "南極"], [202.5, 15.0, "天常"], [217.5, 15.0, "玄戈"], [232.5, 15.0, "天官"], [247.5, 15.0, "天漢"], [262.5, 15.0, "少微"], [277.5, 15.0, "陽璇"], [292.5, 15.0, "亢金"], [307.5, 15.0, "陰璣"], [322.5, 15.0, "天皇"], [337.5, 15.0, "天輔"]]}, {"n": 6, "name": "正針分金", "r0": 165.53, "r1": 191.26, "cells": [[352.5, 7.5, "丙子"], [0.0, 7.5, "庚子"], [7.5, 7.5, "丙子"], [15.0, 7.5, "庚子"], [22.5, 7.5, "丁丑"], [30.0, 7.5, "辛丑"], [37.5, 7.5, "丁丑"], [45.0, 7.5, "辛丑"], [52.5, 7.5, "丙寅"], [60.0, 7.5, "庚寅"], [67.5, 7.5, "丙寅"], [75.0, 7.5, "庚寅"], [82.5, 7.5, "丁卯"], [90.0, 7.5, "辛卯"], [97.5, 7.5, "丁卯"], [105.0, 7.5, "辛卯"], [112.5, 7.5, "丙辰"], [120.0, 7.5, "庚辰"], [127.5, 7.5, "丙辰"], [135.0, 7.5, "庚辰"], [142.5, 7.5, "丁巳"], [150.0, 7.5, "辛巳"], [157.5, 7.5, "丁巳"], [165.0, 7.5, "辛巳"], [172.5, 7.5, "丙午"], [180.0, 7.5, "庚午"], [187.5, 7.5, "丙午"], [195.0, 7.5, "庚午"], [202.5, 7.5, "丁未"], [210.0, 7.5, "辛未"], [217.5, 7.5, "丁未"], [225.0, 7.5, "辛未"], [232.5, 7.5, "丙申"], [240.0, 7.5, "庚申"], [247.5, 7.5, "丙申"], [255.0, 7.5, "庚申"], [262.5, 7.5, "丁酉"], [270.0, 7.5, "辛酉"], [277.5, 7.5, "丁酉"], [285.0, 7.5, "辛酉"], [292.5, 7.5, "丙戌"], [300.0, 7.5, "庚戌"], [307.5, 7.5, "丙戌"], [315.0, 7.5, "庚戌"], [322.5, 7.5, "丁亥"], [330.0, 7.5, "辛亥"], [337.5, 7.5, "丁亥"], [345.0, 7.5, "辛亥"]]}, {"n": 7, "name": "分金五行", "r0": 191.26, "r1": 205.64, "cells": [[352.5, 7.5, "水"], [0.0, 7.5, "土"], [7.5, 7.5, "水"], [15.0, 7.5, "土"], [22.5, 7.5, "水"], [30.0, 7.5, "土"], [37.5, 7.5, "水"], [45.0, 7.5, "土"], [52.5, 7.5, "火"], [60.0, 7.5, "木"], [67.5, 7.5, "火"], [75.0, 7.5, "木"], [82.5, 7.5, "火"], [90.0, 7.5, "木"], [97.5, 7.5, "火"], [105.0, 7.5, "木"], [112.5, 7.5, "土"], [120.0, 7.5, "金"], [127.5, 7.5, "土"], [135.0, 7.5, "金"], [142.5, 7.5, "土"], [150.0, 7.5, "金"], [157.5, 7.5, "土"], [165.0, 7.5, "金"], [172.5, 7.5, "水"], [180.0, 7.5, "土"], [187.5, 7.5, "水"], [195.0, 7.5, "土"], [202.5, 7.5, "水"], [210.0, 7.5, "土"], [217.5, 7.5, "水"], [225.0, 7.5, "土"], [232.5, 7.5, "火"], [240.0, 7.5, "木"], [247.5, 7.5, "火"], [255.0, 7.5, "木"], [262.5, 7.5, "火"], [270.0, 7.5, "木"], [277.5, 7.5, "火"], [285.0, 7.5, "木"], [292.5, 7.5, "土"], [300.0, 7.5, "金"], [307.5, 7.5, "土"], [315.0, 7.5, "金"], [322.5, 7.5, "土"], [330.0, 7.5, "金"], [337.5, 7.5, "土"], [345.0, 7.5, "金"]]}, {"n": 8, "name": "穿山七十二龍", "r0": 205.64, "r1": 230.61, "cells": [[357.5, 5.0, "戊子"], [2.5, 5.0, "庚子"], [7.5, 5.0, "壬子"], [12.5, 5.0, ""], [17.5, 5.0, "乙丑"], [22.5, 5.0, "丁丑"], [27.5, 5.0, "己丑"], [32.5, 5.0, "辛丑"], [37.5, 5.0, "癸丑"], [42.5, 5.0, ""], [47.5, 5.0, "丙寅"], [52.5, 5.0, "戊寅"], [57.5, 5.0, "庚寅"], [62.5, 5.0, "壬寅"], [67.5, 5.0, "甲寅"], [72.5, 5.0, ""], [77.5, 5.0, "丁卯"], [82.5, 5.0, "己卯"], [87.5, 5.0, "辛卯"], [92.5, 5.0, "癸卯"], [97.5, 5.0, "乙卯"], [102.5, 5.0, ""], [107.5, 5.0, "戊辰"], [112.5, 5.0, "庚辰"], [117.5, 5.0, "壬辰"], [122.5, 5.0, "甲辰"], [127.5, 5.0, "丙辰"], [132.5, 5.0, ""], [137.5, 5.0, "己巳"], [142.5, 5.0, "辛巳"], [147.5, 5.0, "癸巳"], [152.5, 5.0, "乙巳"], [157.5, 5.0, "丁巳"], [162.5, 5.0, ""], [167.5, 5.0, "庚午"], [172.5, 5.0, "壬午"], [177.5, 5.0, "甲午"], [182.5, 5.0, "丙午"], [187.5, 5.0, "戊午"], [192.5, 5.0, ""], [197.5, 5.0, "辛未"], [202.5, 5.0, "癸未"], [207.5, 5.0, "乙未"], [212.5, 5.0, "丁未"], [217.5, 5.0, "己未"], [222.5, 5.0, ""], [227.5, 5.0, "壬申"], [232.5, 5.0, "甲申"], [237.5, 5.0, "丙申"], [242.5, 5.0, "戊申"], [247.5, 5.0, "庚申"], [252.5, 5.0, ""], [257.5, 5.0, "癸酉"], [262.5, 5.0, "乙酉"], [267.5, 5.0, "丁酉"], [272.5, 5.0, "己酉"], [277.5, 5.0, "辛酉"], [282.5, 5.0, ""], [287.5, 5.0, "甲戌"], [292.5, 5.0, "丙戌"], [297.5, 5.0, "戊戌"], [302.5, 5.0, "庚戌"], [307.5, 5.0, "壬戌"], [312.5, 5.0, ""], [317.5, 5.0, "乙亥"], [322.5, 5.0, "丁亥"], [327.5, 5.0, "己亥"], [332.5, 5.0, "辛亥"], [337.5, 5.0, "癸亥"], [342.5, 5.0, ""], [347.5, 5.0, "甲子"], [352.5, 5.0, "丙子"]]}, {"n": 9, "name": "穿山宿", "r0": 230.61, "r1": 244.8, "cells": [[357.5, 5.0, "星"], [2.5, 5.0, "牛"], [7.5, 5.0, "參"], [12.5, 5.0, ""], [17.5, 5.0, "亢"], [22.5, 5.0, "壁"], [27.5, 5.0, "張"], [32.5, 5.0, "女"], [37.5, 5.0, "井"], [42.5, 5.0, ""], [47.5, 5.0, "氐"], [52.5, 5.0, "奎"], [57.5, 5.0, "翼"], [62.5, 5.0, "虛"], [67.5, 5.0, "鬼"], [72.5, 5.0, ""], [77.5, 5.0, "房"], [82.5, 5.0, "婁"], [87.5, 5.0, "軫"], [92.5, 5.0, "危"], [97.5, 5.0, "柳"], [102.5, 5.0, ""], [107.5, 5.0, "心"], [112.5, 5.0, "胃"], [117.5, 5.0, "角"], [122.5, 5.0, "室"], [127.5, 5.0, "星"], [132.5, 5.0, ""], [137.5, 5.0, "尾"], [142.5, 5.0, "昴"], [147.5, 5.0, "亢"], [152.5, 5.0, "壁"], [157.5, 5.0, "張"], [162.5, 5.0, ""], [167.5, 5.0, "箕"], [172.5, 5.0, "畢"], [177.5, 5.0, "氐"], [182.5, 5.0, "奎"], [187.5, 5.0, "翼"], [192.5, 5.0, ""], [197.5, 5.0, "斗"], [202.5, 5.0, "觜"], [207.5, 5.0, "房"], [212.5, 5.0, "婁"], [217.5, 5.0, "軫"], [222.5, 5.0, ""], [227.5, 5.0, "牛"], [232.5, 5.0, "參"], [237.5, 5.0, "心"], [242.5, 5.0, "胃"], [247.5, 5.0, "角"], [252.5, 5.0, ""], [257.5, 5.0, "女"], [262.5, 5.0, "井"], [267.5, 5.0, "尾"], [272.5, 5.0, "昴"], [277.5, 5.0, "亢"], [282.5, 5.0, ""], [287.5, 5.0, "虛"], [292.5, 5.0, "鬼"], [297.5, 5.0, "箕"], [302.5, 5.0, "畢"], [307.5, 5.0, "氐"], [312.5, 5.0, ""], [317.5, 5.0, "危"], [322.5, 5.0, "柳"], [327.5, 5.0, "斗"], [332.5, 5.0, "觜"], [337.5, 5.0, "房"], [342.5, 5.0, ""], [347.5, 5.0, "角"], [352.5, 5.0, "室"]]}, {"n": 10, "name": "節氣三元局數", "r0": 244.8, "r1": 258.23, "cells": [[357.5, 5.0, "七"], [2.5, 5.0, "七"], [7.5, 5.0, "一"], [12.5, 5.0, ""], [17.5, 5.0, "二"], [22.5, 5.0, "五"], [27.5, 5.0, "五"], [32.5, 5.0, "九"], [37.5, 5.0, "三"], [42.5, 5.0, ""], [47.5, 5.0, "八"], [52.5, 5.0, "二"], [57.5, 5.0, "二"], [62.5, 5.0, "六"], [67.5, 5.0, "六"], [72.5, 5.0, ""], [77.5, 5.0, "一"], [82.5, 5.0, "一"], [87.5, 5.0, "四"], [92.5, 5.0, "九"], [97.5, 5.0, "九"], [102.5, 5.0, ""], [107.5, 5.0, "四"], [112.5, 5.0, "四"], [117.5, 5.0, "七"], [122.5, 5.0, "八"], [127.5, 5.0, "二"], [132.5, 5.0, ""], [137.5, 5.0, "一"], [142.5, 5.0, "四"], [147.5, 5.0, "七"], [152.5, 5.0, "八"], [157.5, 5.0, "二"], [162.5, 5.0, ""], [167.5, 5.0, "三"], [172.5, 5.0, "六"], [177.5, 5.0, "六"], [182.5, 5.0, "六"], [187.5, 5.0, "三"], [192.5, 5.0, ""], [197.5, 5.0, "二"], [202.5, 5.0, "八"], [207.5, 5.0, "八"], [212.5, 5.0, "四"], [217.5, 5.0, "四"], [222.5, 5.0, ""], [227.5, 5.0, "五"], [232.5, 5.0, "五"], [237.5, 5.0, "二"], [242.5, 5.0, "七"], [247.5, 5.0, "七"], [252.5, 5.0, ""], [257.5, 5.0, "三"], [262.5, 5.0, "三"], [267.5, 5.0, "九"], [272.5, 5.0, "七"], [277.5, 5.0, "四"], [282.5, 5.0, ""], [287.5, 5.0, "三"], [292.5, 5.0, "九"], [297.5, 5.0, "六"], [302.5, 5.0, "五"], [307.5, 5.0, "二"], [312.5, 5.0, ""], [317.5, 5.0, "五"], [322.5, 5.0, "九"], [327.5, 5.0, "九"], [332.5, 5.0, "五"], [337.5, 5.0, "二"], [342.5, 5.0, ""], [347.5, 5.0, "四"], [352.5, 5.0, "二"]]}, {"n": 11, "name": "穿山宿五行", "r0": 258.23, "r1": 272.04, "cells": [[357.5, 5.0, "火"], [2.5, 5.0, "金"], [7.5, 5.0, "水"], [12.5, 5.0, ""], [17.5, 5.0, "金"], [22.5, 5.0, "水"], [27.5, 5.0, "火"], [32.5, 5.0, "土"], [37.5, 5.0, "木"], [42.5, 5.0, ""], [47.5, 5.0, "土"], [52.5, 5.0, "木"], [57.5, 5.0, "火"], [62.5, 5.0, "火"], [67.5, 5.0, "金"], [72.5, 5.0, ""], [77.5, 5.0, "火"], [82.5, 5.0, "金"], [87.5, 5.0, "水"], [92.5, 5.0, "火"], [97.5, 5.0, "土"], [102.5, 5.0, ""], [107.5, 5.0, "火"], [112.5, 5.0, "土"], [117.5, 5.0, "木"], [122.5, 5.0, "火"], [127.5, 5.0, "火"], [132.5, 5.0, ""], [137.5, 5.0, "火"], [142.5, 5.0, "火"], [147.5, 5.0, "金"], [152.5, 5.0, "水"], [157.5, 5.0, "火"], [162.5, 5.0, ""], [167.5, 5.0, "水"], [172.5, 5.0, "火"], [177.5, 5.0, "土"], [182.5, 5.0, "木"], [187.5, 5.0, "火"], [192.5, 5.0, ""], [197.5, 5.0, "木"], [202.5, 5.0, "火"], [207.5, 5.0, "火"], [212.5, 5.0, "金"], [217.5, 5.0, "水"], [222.5, 5.0, ""], [227.5, 5.0, "金"], [232.5, 5.0, "水"], [237.5, 5.0, "火"], [242.5, 5.0, "土"], [247.5, 5.0, "木"], [252.5, 5.0, ""], [257.5, 5.0, "土"], [262.5, 5.0, "木"], [267.5, 5.0, "火"], [272.5, 5.0, "火"], [277.5, 5.0, "金"], [282.5, 5.0, ""], [287.5, 5.0, "火"], [292.5, 5.0, "金"], [297.5, 5.0, "水"], [302.5, 5.0, "火"], [307.5, 5.0, "土"], [312.5, 5.0, ""], [317.5, 5.0, "火"], [322.5, 5.0, "土"], [327.5, 5.0, "木"], [332.5, 5.0, "火"], [337.5, 5.0, "火"], [342.5, 5.0, ""], [347.5, 5.0, "木"], [352.5, 5.0, "火"]]}, {"n": 12, "name": "人盤中針二十四山", "r0": 272.04, "r1": 298.71, "cells": [[345.0, 15.0, "子"], [0.0, 15.0, "癸"], [15.0, 15.0, "丑"], [30.0, 15.0, "艮"], [45.0, 15.0, "寅"], [60.0, 15.0, "甲"], [75.0, 15.0, "卯"], [90.0, 15.0, "乙"], [105.0, 15.0, "辰"], [120.0, 15.0, "巽"], [135.0, 15.0, "巳"], [150.0, 15.0, "丙"], [165.0, 15.0, "午"], [180.0, 15.0, "丁"], [195.0, 15.0, "未"], [210.0, 15.0, "坤"], [225.0, 15.0, "申"], [240.0, 15.0, "庚"], [255.0, 15.0, "酉"], [270.0, 15.0, "辛"], [285.0, 15.0, "戌"], [300.0, 15.0, "乾"], [315.0, 15.0, "亥"], [330.0, 15.0, "壬"]]}, {"n": 13, "name": "二十八宿", "r0": 298.71, "r1": 312.33, "cells": [[345.0, 15.0, "虛"], [0.0, 15.0, "女"], [15.0, 15.0, "牛"], [30.0, 15.0, "斗"], [45.0, 15.0, "箕"], [60.0, 15.0, "心尾"], [75.0, 15.0, "房"], [90.0, 15.0, "氐"], [105.0, 15.0, "亢"], [120.0, 15.0, "角"], [135.0, 15.0, "軫"], [150.0, 15.0, "張翼"], [165.0, 15.0, "星"], [180.0, 15.0, "柳"], [195.0, 15.0, "鬼"], [210.0, 15.0, "井"], [225.0, 15.0, "參"], [240.0, 15.0, "畢觜"], [255.0, 15.0, "昴"], [270.0, 15.0, "胃"], [285.0, 15.0, "婁"], [300.0, 15.0, "奎"], [315.0, 15.0, "壁"], [330.0, 15.0, "危室"]]}, {"n": 14, "name": "二十八宿五行", "r0": 312.33, "r1": 326.14, "cells": [[345.0, 15.0, "火"], [0.0, 15.0, "土"], [15.0, 15.0, "金"], [30.0, 15.0, "木"], [45.0, 15.0, "水"], [60.0, 15.0, "火"], [75.0, 15.0, "火"], [90.0, 15.0, "土"], [105.0, 15.0, "金"], [120.0, 15.0, "木"], [135.0, 15.0, "水"], [150.0, 15.0, "火"], [165.0, 15.0, "火"], [180.0, 15.0, "土"], [195.0, 15.0, "金"], [210.0, 15.0, "木"], [225.0, 15.0, "水"], [240.0, 15.0, "火"], [255.0, 15.0, "火"], [270.0, 15.0, "土"], [285.0, 15.0, "金"], [300.0, 15.0, "木"], [315.0, 15.0, "水"], [330.0, 15.0, "火"]]}, {"n": 15, "name": "盈縮六十龍", "r0": 326.14, "r1": 352.06, "cells": [[359.89, 5.6, "庚子"], [5.49, 5.92, "壬子"], [11.42, 6.1, "乙丑"], [17.52, 5.8, "丁丑"], [23.32, 6.02, "己丑"], [29.34, 6.18, "辛丑"], [35.52, 5.92, "癸丑"], [41.44, 6.12, "丙寅"], [47.57, 5.83, "戊寅"], [53.39, 6.02, "庚寅"], [59.42, 6.02, "壬寅"], [65.44, 6.02, "甲寅"], [71.47, 5.93, "丁卯"], [77.39, 6.27, "己卯"], [83.67, 6.1, "辛卯"], [89.77, 5.77, "癸卯"], [95.54, 6.23, "乙卯"], [101.77, 6.17, "戊辰"], [107.94, 6.1, "庚辰"], [114.04, 5.98, "壬辰"], [120.02, 5.95, "甲辰"], [125.97, 6.2, "丙辰"], [132.17, 5.77, "己巳"], [137.94, 6.0, "辛巳"], [143.94, 6.18, "癸巳"], [150.12, 5.97, "乙巳"], [156.09, 6.18, "丁巳"], [162.27, 6.03, "庚午"], [168.29, 6.0, "壬午"], [174.29, 5.97, "甲午"], [180.27, 5.78, "丙午"], [186.04, 6.03, "戊午"], [192.07, 6.12, "辛未"], [198.19, 6.02, "癸未"], [204.22, 5.6, "乙未"], [209.82, 5.9, "丁未"], [215.72, 5.85, "己未"], [221.57, 5.88, "壬申"], [227.44, 5.85, "甲申"], [233.29, 6.03, "丙申"], [239.32, 6.05, "戊申"], [245.37, 6.0, "庚申"], [251.37, 6.07, "癸酉"], [257.44, 5.95, "乙酉"], [263.39, 6.35, "丁酉"], [269.74, 5.95, "己酉"], [275.69, 5.88, "辛酉"], [281.57, 6.35, "甲戌"], [287.92, 5.9, "丙戌"], [293.82, 6.05, "戊戌"], [299.87, 6.22, "庚戌"], [306.09, 6.03, "壬戌"], [312.12, 6.0, "乙亥"], [318.12, 5.88, "丁亥"], [323.99, 6.12, "己亥"], [330.12, 5.95, "辛亥"], [336.07, 5.93, "癸亥"], [341.99, 6.02, "甲子"], [348.02, 5.7, "丙子"], [353.72, 6.18, "戊子"]]}, {"n": 16, "name": "六十排內外卦", "r0": 352.06, "r1": 378.55, "cells": [[359.89, 5.6, "解"], [5.49, 5.92, "解"], [11.42, 6.1, "渙"], [17.52, 5.8, "渙"], [23.32, 6.02, "未濟"], [29.34, 6.18, "漸"], [35.52, 5.92, "艮"], [41.44, 6.12, "小過"], [47.57, 5.83, "謙"], [53.39, 6.02, "旅"], [59.42, 6.02, "旅"], [65.44, 6.02, "艮"], [71.47, 5.93, "無妄"], [77.39, 6.27, "頤"], [83.67, 6.1, "隨"], [89.77, 5.77, "震"], [95.54, 6.23, "屯"], [101.77, 6.17, "噬嗑"], [107.94, 6.1, "震"], [114.04, 5.98, "復"], [120.02, 5.95, "巽"], [125.97, 6.2, "升"], [132.17, 5.77, "鼎"], [137.94, 6.0, "大過"], [143.94, 6.18, "巽"], [150.12, 5.97, "恒"], [156.09, 6.18, "蠱"], [162.27, 6.03, "中孚"], [168.29, 6.0, "家人"], [174.29, 5.97, "離"], [180.27, 5.78, "明夷"], [186.04, 6.03, "既濟"], [192.07, 6.12, "革"], [198.19, 6.02, "離"], [204.22, 5.6, "革"], [209.82, 5.9, "兌"], [215.72, 5.85, "晉"], [221.57, 5.88, "觀"], [227.44, 5.85, "坤"], [233.29, 6.03, "否"], [239.32, 6.05, "革"], [245.37, 6.0, "坤"], [251.37, 6.07, "兌"], [257.44, 5.95, "歸妹"], [263.39, 6.35, "中孚"], [269.74, 5.95, "歸妹"], [275.69, 5.88, "履"], [281.57, 6.35, "兌"], [287.92, 5.9, "離"], [293.82, 6.05, "離"], [299.87, 6.22, "大有"], [306.09, 6.03, "需"], [312.12, 6.0, "大有"], [318.12, 5.88, "大壯"], [323.99, 6.12, "夬"], [330.12, 5.95, "泰"], [336.07, 5.93, "乾"], [341.99, 6.02, "坎"], [348.02, 5.7, "坤"], [353.72, 6.18, "師"]]}, {"n": 17, "name": "盈縮龍五行", "r0": 378.55, "r1": 394.44, "cells": [[359.89, 5.6, "金"], [5.49, 5.92, "木"], [11.42, 6.1, "土"], [17.52, 5.8, "水"], [23.32, 6.02, "金"], [29.34, 6.18, "木"], [35.52, 5.92, "土"], [41.44, 6.12, "火"], [47.57, 5.83, "火"], [53.39, 6.02, "金"], [59.42, 6.02, "水"], [65.44, 6.02, "土"], [71.47, 5.93, "木"], [77.39, 6.27, "金"], [83.67, 6.1, "水"], [89.77, 5.77, "土"], [95.54, 6.23, "木"], [101.77, 6.17, "火"], [107.94, 6.1, "水"], [114.04, 5.98, "土"], [120.02, 5.95, "木"], [125.97, 6.2, "火"], [132.17, 5.77, "金"], [137.94, 6.0, "木"], [143.94, 6.18, "土"], [150.12, 5.97, "火"], [156.09, 6.18, "金"], [162.27, 6.03, "水"], [168.29, 6.0, "土"], [174.29, 5.97, "木"], [180.27, 5.78, "火"], [186.04, 6.03, "水"], [192.07, 6.12, "金"], [198.19, 6.02, "土"], [204.22, 5.6, "水"], [209.82, 5.9, "火"], [215.72, 5.85, "金"], [221.57, 5.88, "木"], [227.44, 5.85, "火"], [233.29, 6.03, "水"], [239.32, 6.05, "金"], [245.37, 6.0, "木"], [251.37, 6.07, "土"], [257.44, 5.95, "水"], [263.39, 6.35, "火"], [269.74, 5.95, "木"], [275.69, 5.88, "土"], [281.57, 6.35, "金"], [287.92, 5.9, "土"], [293.82, 6.05, "水"], [299.87, 6.22, "金"], [306.09, 6.03, "火"], [312.12, 6.0, "木"], [318.12, 5.88, "火"], [323.99, 6.12, "土"], [330.12, 5.95, "水"], [336.07, 5.93, "木"], [341.99, 6.02, "金"], [348.02, 5.7, "火"], [353.72, 6.18, "火"]]}, {"n": 18, "name": "盈縮龍三元局數", "r0": 394.44, "r1": 406.64, "cells": [[359.89, 5.6, "七"], [5.49, 5.92, "一"], [11.42, 6.1, "二"], [17.52, 5.8, "五"], [23.32, 6.02, "五"], [29.34, 6.18, "九"], [35.52, 5.92, "三"], [41.44, 6.12, "八"], [47.57, 5.83, "二"], [53.39, 6.02, "二"], [59.42, 6.02, "六"], [65.44, 6.02, "六"], [71.47, 5.93, "一"], [77.39, 6.27, "一"], [83.67, 6.1, "四"], [89.77, 5.77, "九"], [95.54, 6.23, "九"], [101.77, 6.17, "四"], [107.94, 6.1, "四"], [114.04, 5.98, "七"], [120.02, 5.95, "八"], [125.97, 6.2, "二"], [132.17, 5.77, "一"], [137.94, 6.0, "四"], [143.94, 6.18, "七"], [150.12, 5.97, "八"], [156.09, 6.18, "二"], [162.27, 6.03, "三"], [168.29, 6.0, "六"], [174.29, 5.97, "六"], [180.27, 5.78, "六"], [186.04, 6.03, "三"], [192.07, 6.12, "二"], [198.19, 6.02, "八"], [204.22, 5.6, "八"], [209.82, 5.9, "四"], [215.72, 5.85, "四"], [221.57, 5.88, "五"], [227.44, 5.85, "五"], [233.29, 6.03, "二"], [239.32, 6.05, "七"], [245.37, 6.0, "七"], [251.37, 6.07, "三"], [257.44, 5.95, "三"], [263.39, 6.35, "九"], [269.74, 5.95, "九"], [275.69, 5.88, "四"], [281.57, 6.35, "三"], [287.92, 5.9, "九"], [293.82, 6.05, "六"], [299.87, 6.22, "五"], [306.09, 6.03, "二"], [312.12, 6.0, "三"], [318.12, 5.88, "九"], [323.99, 6.12, "九"], [330.12, 5.95, "五"], [336.07, 5.93, "二"], [341.99, 6.02, "四"], [348.02, 5.7, "二"], [353.72, 6.18, "七"]]}, {"n": 19, "name": "三元節局陰陽", "r0": 406.64, "r1": 418.84, "cells": [[359.89, 5.6, "陽"], [5.49, 5.92, "陽"], [11.42, 6.1, "陽"], [17.52, 5.8, "陽"], [23.32, 6.02, "陽"], [29.34, 6.18, "陽"], [35.52, 5.92, "陽"], [41.44, 6.12, "陽"], [47.57, 5.83, "陽"], [53.39, 6.02, "陽"], [59.42, 6.02, "陽"], [65.44, 6.02, "陽"], [71.47, 5.93, "陽"], [77.39, 6.27, "陽"], [83.67, 6.1, "陽"], [89.77, 5.77, "陽"], [95.54, 6.23, "陽"], [101.77, 6.17, "陽"], [107.94, 6.1, "陽"], [114.04, 5.98, "陽"], [120.02, 5.95, "陽"], [125.97, 6.2, "陽"], [132.17, 5.77, "陽"], [137.94, 6.0, "陽"], [143.94, 6.18, "陽"], [150.12, 5.97, "陽"], [156.09, 6.18, "陽"], [162.27, 6.03, "陽"], [168.29, 6.0, "陽"], [174.29, 5.97, "陽"], [180.27, 5.78, "陰"], [186.04, 6.03, "陰"], [192.07, 6.12, "陰"], [198.19, 6.02, "陰"], [204.22, 5.6, "陰"], [209.82, 5.9, "陰"], [215.72, 5.85, "陰"], [221.57, 5.88, "陰"], [227.44, 5.85, "陰"], [233.29, 6.03, "陰"], [239.32, 6.05, "陰"], [245.37, 6.0, "陰"], [251.37, 6.07, "陰"], [257.44, 5.95, "陰"], [263.39, 6.35, "陰"], [269.74, 5.95, "陰"], [275.69, 5.88, "陰"], [281.57, 6.35, "陰"], [287.92, 5.9, "陰"], [293.82, 6.05, "陰"], [299.87, 6.22, "陰"], [306.09, 6.03, "陰"], [312.12, 6.0, "陰"], [318.12, 5.88, "陰"], [323.99, 6.12, "陰"], [330.12, 5.95, "陰"], [336.07, 5.93, "陰"], [341.99, 6.02, "陰"], [348.02, 5.7, "陰"], [353.72, 6.18, "陰"]]}, {"n": 20, "name": "天盤縫針二十四山", "r0": 418.84, "r1": 443.62, "cells": [[0.0, 15.0, "子"], [15.0, 15.0, "癸"], [30.0, 15.0, "丑"], [45.0, 15.0, "艮"], [60.0, 15.0, "寅"], [75.0, 15.0, "甲"], [90.0, 15.0, "卯"], [105.0, 15.0, "乙"], [120.0, 15.0, "辰"], [135.0, 15.0, "巽"], [150.0, 15.0, "巳"], [165.0, 15.0, "丙"], [180.0, 15.0, "午"], [195.0, 15.0, "丁"], [210.0, 15.0, "未"], [225.0, 15.0, "坤"], [240.0, 15.0, "申"], [255.0, 15.0, "庚"], [270.0, 15.0, "酉"], [285.0, 15.0, "辛"], [300.0, 15.0, "戌"], [315.0, 15.0, "乾"], [330.0, 15.0, "亥"], [345.0, 15.0, "壬"]]}, {"n": 21, "name": "雙山五行", "r0": 443.62, "r1": 457.81, "cells": [[345.0, 30.0, "水"], [15.0, 30.0, "金"], [45.0, 30.0, "火"], [75.0, 30.0, "木"], [105.0, 30.0, "水"], [135.0, 30.0, "金"], [165.0, 30.0, "火"], [195.0, 30.0, "木"], [225.0, 30.0, "水"], [255.0, 30.0, "金"], [285.0, 30.0, "火"], [315.0, 30.0, "木"]]}, {"n": 22, "name": "縫針分金", "r0": 457.81, "r1": 483.92, "cells": [[0.0, 3.0, ""], [3.0, 3.0, "丙子"], [6.0, 3.0, ""], [9.0, 3.0, "庚子"], [12.0, 3.0, ""], [15.0, 3.0, ""], [18.0, 3.0, "丙子"], [21.0, 3.0, ""], [24.0, 3.0, "庚子"], [27.0, 3.0, ""], [30.0, 3.0, ""], [33.0, 3.0, "丁丑"], [36.0, 3.0, ""], [39.0, 3.0, "辛丑"], [42.0, 3.0, ""], [45.0, 3.0, ""], [48.0, 3.0, "丁丑"], [51.0, 3.0, ""], [54.0, 3.0, "辛丑"], [57.0, 3.0, ""], [60.0, 3.0, ""], [63.0, 3.0, "丙寅"], [66.0, 3.0, ""], [69.0, 3.0, "庚寅"], [72.0, 3.0, ""], [75.0, 3.0, ""], [78.0, 3.0, "丙寅"], [81.0, 3.0, ""], [84.0, 3.0, "庚寅"], [87.0, 3.0, ""], [90.0, 3.0, ""], [93.0, 3.0, "丁卯"], [96.0, 3.0, ""], [99.0, 3.0, "辛卯"], [102.0, 3.0, ""], [105.0, 3.0, ""], [108.0, 3.0, "丁卯"], [111.0, 3.0, ""], [114.0, 3.0, "辛卯"], [117.0, 3.0, ""], [120.0, 3.0, ""], [123.0, 3.0, "丙辰"], [126.0, 3.0, ""], [129.0, 3.0, "庚辰"], [132.0, 3.0, ""], [135.0, 3.0, ""], [138.0, 3.0, "丙辰"], [141.0, 3.0, ""], [144.0, 3.0, "庚辰"], [147.0, 3.0, ""], [150.0, 3.0, ""], [153.0, 3.0, "丁巳"], [156.0, 3.0, ""], [159.0, 3.0, "辛巳"], [162.0, 3.0, ""], [165.0, 3.0, ""], [168.0, 3.0, "丁巳"], [171.0, 3.0, ""], [174.0, 3.0, "辛巳"], [177.0, 3.0, ""], [180.0, 3.0, ""], [183.0, 3.0, "丙午"], [186.0, 3.0, ""], [189.0, 3.0, "庚午"], [192.0, 3.0, ""], [195.0, 3.0, ""], [198.0, 3.0, "丙午"], [201.0, 3.0, ""], [204.0, 3.0, "庚午"], [207.0, 3.0, ""], [210.0, 3.0, ""], [213.0, 3.0, "丁未"], [216.0, 3.0, ""], [219.0, 3.0, "辛未"], [222.0, 3.0, ""], [225.0, 3.0, ""], [228.0, 3.0, "丁未"], [231.0, 3.0, ""], [234.0, 3.0, "辛未"], [237.0, 3.0, ""], [240.0, 3.0, ""], [243.0, 3.0, "丙申"], [246.0, 3.0, ""], [249.0, 3.0, "庚申"], [252.0, 3.0, ""], [255.0, 3.0, ""], [258.0, 3.0, "丙申"], [261.0, 3.0, ""], [264.0, 3.0, "庚申"], [267.0, 3.0, ""], [270.0, 3.0, ""], [273.0, 3.0, "丁酉"], [276.0, 3.0, ""], [279.0, 3.0, "辛酉"], [282.0, 3.0, ""], [285.0, 3.0, ""], [288.0, 3.0, "丁酉"], [291.0, 3.0, ""], [294.0, 3.0, "辛酉"], [297.0, 3.0, ""], [300.0, 3.0, ""], [303.0, 3.0, "丙戌"], [306.0, 3.0, ""], [309.0, 3.0, "庚戌"], [312.0, 3.0, ""], [315.0, 3.0, ""], [318.0, 3.0, "丙戌"], [321.0, 3.0, ""], [324.0, 3.0, "庚戌"], [327.0, 3.0, ""], [330.0, 3.0, ""], [333.0, 3.0, "丁亥"], [336.0, 3.0, ""], [339.0, 3.0, "辛亥"], [342.0, 3.0, ""], [345.0, 3.0, ""], [348.0, 3.0, "丁亥"], [351.0, 3.0, ""], [354.0, 3.0, "辛亥"], [357.0, 3.0, ""]]}, {"n": 23, "name": "縫針分金五行", "r0": 483.92, "r1": 500.0, "cells": [[0.0, 7.5, "水"], [7.5, 7.5, "土"], [15.0, 7.5, "水"], [22.5, 7.5, "土"], [30.0, 7.5, "水"], [37.5, 7.5, "土"], [45.0, 7.5, "水"], [52.5, 7.5, "土"], [60.0, 7.5, "火"], [67.5, 7.5, "木"], [75.0, 7.5, "火"], [82.5, 7.5, "木"], [90.0, 7.5, "火"], [97.5, 7.5, "木"], [105.0, 7.5, "火"], [112.5, 7.5, "木"], [120.0, 7.5, "土"], [127.5, 7.5, "金"], [135.0, 7.5, "土"], [142.5, 7.5, "金"], [150.0, 7.5, "土"], [157.5, 7.5, "金"], [165.0, 7.5, "土"], [172.5, 7.5, "金"], [180.0, 7.5, "水"], [187.5, 7.5, "土"], [195.0, 7.5, "水"], [202.5, 7.5, "土"], [210.0, 7.5, "水"], [217.5, 7.5, "土"], [225.0, 7.5, "水"], [232.5, 7.5, "土"], [240.0, 7.5, "火"], [247.5, 7.5, "木"], [255.0, 7.5, "火"], [262.5, 7.5, "木"], [270.0, 7.5, "火"], [277.5, 7.5, "木"], [285.0, 7.5, "火"], [292.5, 7.5, "木"], [300.0, 7.5, "土"], [307.5, 7.5, "金"], [315.0, 7.5, "土"], [322.5, 7.5, "金"], [330.0, 7.5, "土"], [337.5, 7.5, "金"], [345.0, 7.5, "土"], [352.5, 7.5, "金"]]}, {"n": 24, "name": "十二長生 木局", "r0": 500.0, "r1": 524.0, "cells": [[345.0, 30.0, "沐浴"], [15.0, 30.0, "冠帶"], [45.0, 30.0, "臨官"], [75.0, 30.0, "帝旺"], [105.0, 30.0, "衰"], [135.0, 30.0, "病"], [165.0, 30.0, "死"], [195.0, 30.0, "墓"], [225.0, 30.0, "絕"], [255.0, 30.0, "胎"], [285.0, 30.0, "養"], [315.0, 30.0, "長生"]], "group": "jangsaeng", "note": "木局: 長生 乾亥"}, {"n": 25, "name": "十二長生 火局", "r0": 500.0, "r1": 524.0, "cells": [[345.0, 30.0, "胎"], [15.0, 30.0, "養"], [45.0, 30.0, "長生"], [75.0, 30.0, "沐浴"], [105.0, 30.0, "冠帶"], [135.0, 30.0, "臨官"], [165.0, 30.0, "帝旺"], [195.0, 30.0, "衰"], [225.0, 30.0, "病"], [255.0, 30.0, "死"], [285.0, 30.0, "墓"], [315.0, 30.0, "絕"]], "group": "jangsaeng", "note": "火局: 長生 艮寅"}, {"n": 26, "name": "十二長生 金局", "r0": 500.0, "r1": 524.0, "cells": [[345.0, 30.0, "死"], [15.0, 30.0, "墓"], [45.0, 30.0, "絕"], [75.0, 30.0, "胎"], [105.0, 30.0, "養"], [135.0, 30.0, "長生"], [165.0, 30.0, "沐浴"], [195.0, 30.0, "冠帶"], [225.0, 30.0, "臨官"], [255.0, 30.0, "帝旺"], [285.0, 30.0, "衰"], [315.0, 30.0, "病"]], "group": "jangsaeng", "note": "金局: 長生 巽巳"}, {"n": 27, "name": "十二長生 水局", "r0": 500.0, "r1": 524.0, "cells": [[345.0, 30.0, "帝旺"], [15.0, 30.0, "衰"], [45.0, 30.0, "病"], [75.0, 30.0, "死"], [105.0, 30.0, "墓"], [135.0, 30.0, "絕"], [165.0, 30.0, "胎"], [195.0, 30.0, "養"], [225.0, 30.0, "長生"], [255.0, 30.0, "沐浴"], [285.0, 30.0, "冠帶"], [315.0, 30.0, "臨官"]], "group": "jangsaeng", "note": "水局: 長生 坤申"}, {"n": 28, "name": "二十八宿度數", "r0": 524.0, "r1": 542.0, "cells": [[9.256, 7.885, "牛"], [17.141, 25.873, "斗"], [43.013, 10.842, "箕"], [53.855, 17.741, "尾"], [71.597, 4.928, "心"], [76.525, 4.928, "房"], [81.453, 14.784, "氐"], [96.237, 8.871, "亢"], [105.108, 11.828, "角"], [116.935, 16.756, "軫"], [133.691, 17.741, "翼"], [151.432, 17.741, "張"], [169.174, 6.899, "星"], [176.073, 14.784, "柳"], [190.857, 3.943, "鬼"], [194.8, 32.526, "井"], [227.325, 8.871, "參"], [236.196, 1.971, "觜"], [238.167, 15.77, "畢"], [253.937, 10.842, "昴"], [264.779, 13.799, "胃"], [278.578, 11.828, "婁"], [290.406, 15.77, "奎"], [306.176, 8.871, "壁"], [315.046, 15.77, "室"], [330.816, 16.756, "危"], [347.572, 9.856, "虛"], [357.428, 11.828, "女"]], "note": "古法 365¼度 (角12 亢9 氐15 房5 心5 尾18 箕11 斗26¼ 牛8 女12 虛10 危17 室16 壁9 奎16 婁12 胃14 昴11 畢16 觜2 參9 井33 鬼4 柳15 星7 張18 翼18 軫17). 逆行, 虛宿 中央=子 中央(中針)"}];
+const LAYER_INFO = {
+ 1:'八曜煞. 坎·艮·震·巽·離·坤·兌·乾 여덟 괘 방위마다 꺼리는 支(辰·寅·申·酉·亥·卯·巳·午)를 적은 층. 坐의 괘에 해당하는 글자 방향에서 물이 오거나 바람이 들면 八曜煞로 봅니다.',
+ 2:'八路四路黃泉. 天干 向에 대해 물이 오고 나가는 것을 꺼리는 방위(艮·巽·坤·乾, 甲癸·乙丙·丁庚·辛壬)를 적은 층입니다.',
+ 3:'자침(磁北)을 기준으로 한 24山. 格龍·定坐·立向의 기본이 되는 층으로, 다른 모든 층은 이 24山을 기준으로 놓입니다.',
+ 4:'24山을 淨陰·淨陽으로 나눈 층. 龍·穴·砂·水의 陰陽 배합을 볼 때 씁니다.',
+ 5:'24山마다 배속된 天星의 이름. 星의 吉凶으로 龍과 向을 가늠합니다.',
+ 6:'正針 24山을 각각 5칸으로 나눈 120分金 가운데 丙·庚·丁·辛 分金을 적은 층. 坐를 세밀하게 정하고 空亡을 피하는 데 씁니다.',
+ 7:'正針分金의 納音五行.',
+ 8:'地盤 아래 72칸으로 來龍이 어느 龍으로 들어오는지 보는 층. 60甲子 龍과 12개의 空亡(빈 칸)으로 이루어집니다.',
+ 9:'穿山七十二龍 각 칸에 배속된 28宿.',
+ 10:'穿山七十二龍 각 칸에 배속된 三元 局數(一~九).',
+ 11:'穿山七十二龍에 배속된 宿의 五行.',
+ 12:'地盤正針보다 7.5° 逆(반시계)으로 놓인 24山. 주변 산(砂)의 방위를 보는 消砂에 씁니다.',
+ 13:'人盤中針에 맞춘 28宿. 이 盤에서는 24칸으로 놓여 心尾·張翼·畢觜·危室 네 쌍이 한 칸에 들어 있습니다.',
+ 14:'28宿의 五行.',
+ 15:'天盤 아래 60龍. 칸 폭이 고르지 않아 盈縮이라 하며, 來龍의 세밀한 吉凶을 봅니다.',
+ 16:'盈縮六十龍 각 칸에 배속된 卦.',
+ 17:'盈縮六十龍의 納音五行.',
+ 18:'盈縮六十龍의 三元 局數.',
+ 19:'盈縮六十龍의 陰陽. 節氣에 따라 앞 절반은 陽, 뒤 절반은 陰으로 나뉩니다.',
+ 20:'地盤正針보다 7.5° 順(시계)으로 놓인 24山. 물이 오고 나가는 방위를 보는 納水·放水에 씁니다.',
+ 21:'縫針 24山을 두 山씩 묶은 12쌍(壬子·癸丑…)의 三合五行.',
+ 22:'天盤縫針을 기준으로 한 分金. 물의 방위를 세밀하게 볼 때 씁니다.',
+ 23:'縫針分金의 納音五行.',
+ 24:'三合 水法의 十二長生(木局). 亥卯未: 乾亥 長生, 甲卯 帝旺, 丁未 墓. 水口가 丁未·坤申 쪽이면 木局으로 봅니다.',
+ 25:'三合 水法의 十二長生(火局). 寅午戌: 艮寅 長生, 丙午 帝旺, 辛戌 墓. 水口가 辛戌·乾亥 쪽이면 火局으로 봅니다.',
+ 26:'三合 水法의 十二長生(金局). 巳酉丑: 巽巳 長生, 庚酉 帝旺, 癸丑 墓. 水口가 癸丑·艮寅 쪽이면 金局으로 봅니다.',
+ 27:'三合 水法의 十二長生(水局). 申子辰: 坤申 長生, 壬子 帝旺, 乙辰 墓. 水口가 乙辰·巽巳 쪽이면 水局으로 봅니다.',
+ 28:'二十八宿 天文 度數(古法 365¼度). 하늘의 운행을 따라 逆으로 돌며, 虛宿 가운데를 中針 子 가운데에 맞췄습니다. 度數 표와 기준점은 盤마다 달라 layers.json에서 고칠 수 있습니다.'
+};
+// 설치형 앱(안드로이드) 연결: 안드로이드 앱이 window.NakyengAndroid를 넣어 준다. 웹·데스크톱에서는 없음
+const NATIVE=window.NakyengAndroid||null;
+const APP_VERSION=new URLSearchParams(location.search).get('v')||'0.7.6';   // 릴리스 때 scripts/copy-app.mjs가 VERSION 값으로 바꿔 넣음. 데스크톱 앱은 ?v=로 넘김
+const RELEASE_API='https://api.github.com/repos/kyengilam-coder/YeonEo_Nakyeng_release/releases/latest', RELEASE_PAGE='https://github.com/kyengilam-coder/YeonEo_Nakyeng_release/releases/latest';
+const SAN=['子','癸','丑','艮','寅','甲','卯','乙','辰','巽','巳','丙','午','丁','未','坤','申','庚','酉','辛','戌','乾','亥','壬'];
+const CN=['','一','二','三','四','五','六','七','八','九'];
+function numCN(n){if(n<10)return CN[n];if(n<20)return '十'+CN[n-10];return CN[Math.floor(n/10)]+'十'+CN[n%10];}
+const JG=l=>l.group==='jangsaeng';
+function ringCount(){return LAYERS.filter(l=>!l.group).length+new Set(LAYERS.filter(l=>l.group).map(l=>l.group)).size;}   // 같은 자리를 번갈아 쓰는 층은 하나로 셈   // 十二長生 四局: 한 번에 하나만 보임
+const KINDS={'坐向':{n:3},'得水':{n:20},'破水':{n:20},'砂':{n:12}};   // 기록 종류와 기준 針(층 번호)
+const SS12=['壬子','癸丑','艮寅','甲卯','乙辰','巽巳','丙午','丁未','坤申','庚酉','辛戌','乾亥'];
+function ssOf(az){const i=SAN.indexOf(valAt(20,az));return i<0?'':SS12[Math.floor((i+1)/2)%12];}   // 縫針 雙山
+function gukOfAz(az){return GUK_OF_SUGU[ssOf(az)]||null;}
+const GUK_OF_SUGU={'丁未':'木局','坤申':'木局','辛戌':'火局','乾亥':'火局','癸丑':'金局','艮寅':'金局','乙辰':'水局','巽巳':'水局'};
+const PAN={ji:{name:'地盤正針',c:'#f2d79a'},in:{name:'人盤中針',c:'#cde4c1'},cheon:{name:'天盤縫針',c:'#c7daef'}};
+function panOf(n){return n<=11?'ji':(n<=14?'in':'cheon');}
+const MAIN=[3,12,20];           // 24山 층
+const BUN=[6,22];               // 分金 층
+const DEG_W=26;                 // 맨 바깥 360° 눈금 고리 폭 (층 데이터가 아니라 build()에서 그림)
+const DEG_INFO='0°는 地盤正針 子 가운데(北)이고 시계 방향으로 셉니다. 1°마다 짧은 눈금, 5°는 중간, 10°는 긴 눈금과 숫자. 숫자는 붉은 선(向) 아래에서 바로 읽히도록 머리를 바깥으로 두었습니다. 층 탭에서 끌 수 있습니다.';
+const svgNS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+const disc=$('disc'), view=$('view'), stage=$('stage'), msg=$('msg'), tip=$('tip');
+let R=500, VB=540, RD=0;   // RD: 맨 바깥 360° 눈금 고리의 안쪽 반지름(= 층의 바깥 끝). 눈금을 끄면 0
+function el(n,a){const e=document.createElementNS(svgNS,n);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function pol(r,a){const t=(a-90)*Math.PI/180;return [r*Math.cos(t),r*Math.sin(t)];}
+const mod=(a,m=360)=>((a%m)+m)%m;
+// ---- 설정 ----
+const DEF={declOn:false,decl:-8,gapSan:1.5,gapBun:1,kongL:[3,6],hidden:[],pan:true,deg:true,gps:false,wake:true,autoCompass:true,dev:'',sync:null,site:'',shown:'',siteUp:true};   // shown: 盤에 불러온 터, siteUp: 방위도를 向 위로
+let S=Object.assign({},DEF);
+try{Object.assign(S,JSON.parse(localStorage.getItem('nagyeong.set')||'{}'));}catch(e){}
+if(!S.siteUp2){S.siteUp=true;S.siteUp2=1;}   // 0.7.3: 向 위로를 기본으로 바꿈. 예전 기본값(꺼짐)이 저장된 기기도 한 번은 켬
+function saveS(){try{localStorage.setItem('nagyeong.set',JSON.stringify(S));}catch(e){}}
+// ---- 상태 ----
+let LAYERS=EMBEDDED_LAYERS, layerG={}, hl, hlCell, kongG, siteG, bandsOn=true;
+let rot=0, zoom=1, px=0, py=0, sensor=false, locked=false, axis='free'; // axis: free | h | v
+try{const s=JSON.parse(localStorage.getItem('nagyeong')||'{}'); if(typeof s.rot==='number')rot=s.rot; if(s.zoom)zoom=s.zoom;}catch(e){}
+{const m=(location.hash+location.search).match(/[#?&]az=(-?[\d.]+)/); if(m){rot=-mod(+m[1]);}}
+function save(){try{localStorage.setItem('nagyeong',JSON.stringify({rot,zoom}));}catch(e){}}
+// ---- 盤 그리기 ----
+function build(){
+  disc.innerHTML='';layerG={};
+  const RL=Math.max(...LAYERS.map(l=>l.r1)); RD=S.deg?RL:0;
+  R=RL+(RD?DEG_W:0); VB=R+40; $('svg').setAttribute('viewBox',`${-VB} ${-VB} ${2*VB} ${2*VB}`);
+  enforceGuk();
+  disc.appendChild(el('circle',{r:R+14,fill:'#26100b'}));
+  disc.appendChild(el('circle',{r:R+6,fill:'#b99552'}));
+  disc.appendChild(el('circle',{r:R+1,fill:'#f1e7cf'}));
+  disc.appendChild(el('circle',{r:R+1,fill:'none',stroke:'#231c18','stroke-width':2.2}));
+  for(const L of LAYERS){
+    const g=el('g',{class:'layer'+(S.hidden.includes(L.n)?' off':''),'data-n':L.n}); layerG[L.n]=g; disc.appendChild(g);
+    const p=PAN[panOf(L.n)], th=L.r1-L.r0, rm=(L.r0+L.r1)/2;
+    g.appendChild(el('circle',{class:'band',r:rm,fill:'none',stroke:p.c,'stroke-width':th,style:MAIN.includes(L.n)?'filter:saturate(1.8) brightness(.93)':''}));
+    const lines=el('g',{stroke:'#231c18','stroke-width':.7,fill:'none'}), texts=el('g',{});
+    g.appendChild(lines); g.appendChild(texts);
+    lines.appendChild(el('circle',{r:L.r0,'stroke-width':[1,12,15].includes(L.n)?2.2:.7}));
+    for(const [a0,w,t] of L.cells){
+      const [x0,y0]=pol(L.r0,a0),[x1,y1]=pol(L.r1,a0);
+      lines.appendChild(el('line',{x1:x0,y1:y0,x2:x1,y2:y1}));
+      if(!t) continue;
+      const chars=[...t]; const am=a0+w/2; const arc=w*Math.PI/180*rm;
+      let fs=Math.min(th/chars.length*0.78, arc*0.72, 26);
+      if(chars.length===1) fs=Math.min(th*0.6, arc*0.72, 30);
+      const tg=el('g',{transform:`rotate(${am+180}) translate(0 ${rm})`});
+      const total=fs*chars.length*1.02;
+      chars.forEach((c,i)=>{const tx=el('text',{x:0,y:-total/2+fs*(i+0.5)*1.02,'text-anchor':'middle','dominant-baseline':'central','font-size':fs,'font-weight':chars.length===1&&th>20?'600':'400'});tx.textContent=c;tg.appendChild(tx);});
+      texts.appendChild(tg);
+    }
+  }
+  if(RD)disc.appendChild(degRing(RD,R));
+  disc.appendChild(el('circle',{r:R,fill:'none',stroke:'#231c18','stroke-width':.7}));
+  // 天池
+  const r0=LAYERS[0].r0;
+  disc.appendChild(el('circle',{r:r0,fill:'#f7f0dd',stroke:'#231c18','stroke-width':1.2}));
+  disc.appendChild(el('line',{x1:0,y1:-r0,x2:0,y2:r0,stroke:'#c1341f','stroke-width':.8,'stroke-dasharray':'3 3'}));
+  disc.appendChild(el('line',{x1:-r0,y1:0,x2:r0,y2:0,stroke:'#c1341f','stroke-width':.8,'stroke-dasharray':'3 3'}));
+  const needle=el('g',{}); disc.appendChild(needle);
+  needle.appendChild(el('polygon',{points:`0,${-r0+8} 5,0 -5,0`,fill:'#1f5fbf'}));
+  needle.appendChild(el('polygon',{points:`0,${r0-8} 5,0 -5,0`,fill:'#c1341f'}));
+  const tn=el('text',{x:12,y:-r0+22,'font-size':14,'font-weight':'600','text-anchor':'middle','dominant-baseline':'central',style:'fill:#1f5fbf'});tn.textContent='N';needle.appendChild(tn);
+  const ts=el('text',{x:12,y:r0-22,'font-size':14,'font-weight':'600','text-anchor':'middle','dominant-baseline':'central',style:'fill:#c1341f'});ts.textContent='S';needle.appendChild(ts);
+  needle.appendChild(el('circle',{r:3.5,fill:'#b99552'}));
+  siteG=el('g',{class:'smks'}); disc.appendChild(siteG);   // 盤에 불러온 터의 得水·破水·砂 표시
+  hlCell=el('path',{class:'hl',d:''}); disc.appendChild(hlCell);
+  hl=el('circle',{class:'hl',r:0,fill:'none'}); disc.appendChild(hl);
+  kongG=el('g',{stroke:'#c1341f','stroke-width':3,'stroke-linecap':'round',opacity:.85}); disc.appendChild(kongG);
+  disc.classList.toggle('nopan',!S.pan);
+}
+// 맨 바깥 360° 눈금: 0°=子 가운데(北)에서 시계 방향. 눈금은 길이별로 path 하나에 모아 요소 수를 줄이고, 10°마다 숫자를 머리가 바깥을 향하게 둔다(붉은 선 아래에서 바로 읽힘)
+function degRing(r0,r1){const g=el('g',{class:'deg'}), d=['','',''];
+  for(let k=0;k<360;k++){const t=k%10?(k%5?0:1):2, [x0,y0]=pol(r0,k), [x1,y1]=pol(r0+[5,8,11][t],k);
+    d[t]+=`M${x0.toFixed(2)} ${y0.toFixed(2)}L${x1.toFixed(2)} ${y1.toFixed(2)}`;}
+  d.forEach((p,t)=>g.appendChild(el('path',{d:p,fill:'none',stroke:'#231c18','stroke-width':[.6,.9,1.3][t]})));
+  g.appendChild(el('circle',{r:r0,fill:'none',stroke:'#231c18','stroke-width':1.2}));
+  const rt=(r0+12+r1)/2;
+  for(let k=0;k<360;k+=10){const big=k%90===0;   // 0·90·180·270은 붉게
+    const tx=el('text',{transform:`rotate(${k}) translate(0 ${-rt})`,'text-anchor':'middle','dominant-baseline':'central','font-size':13,'font-weight':big?'700':'400',style:big?'fill:#c1341f':''});
+    tx.textContent=k; g.appendChild(tx);}
+  return g;}
+function wedge(L,a0,w){const [ax,ay]=pol(L.r0,a0),[bx,by]=pol(L.r1,a0),[cx,cy]=pol(L.r1,a0+w),[dx,dy]=pol(L.r0,a0+w);
+  return `M${ax} ${ay}L${bx} ${by}A${L.r1} ${L.r1} 0 ${w>180?1:0} 1 ${cx} ${cy}L${dx} ${dy}A${L.r0} ${L.r0} 0 ${w>180?1:0} 0 ${ax} ${ay}Z`;}
+// ---- 판독 계산 ----
+const byN=n=>LAYERS.find(l=>l.n===n);
+function cellAt(L,a){return L.cells.find(([a0,w])=>mod(a-a0)<w);}
+function valAt(n,a){const c=cellAt(byN(n),a);return c?c[2]:'';}
+function gapAt(L,a){const i=L.cells.findIndex(([a0,w])=>mod(a-a0)<w); if(i<0) return null; const n=L.cells.length, c=L.cells[i], [a0,w]=c; const d0=mod(a-a0), d1=mod(a0+w-a);
+  return d0<=d1?{d:d0,ang:mod(a0),lo:L.cells[(i-1+n)%n],hi:c}:{d:d1,ang:mod(a0+w),lo:c,hi:L.cells[(i+1)%n]};}
+function kongCheck(a){const out=[];
+  for(const n of S.kongL){const L=byN(n); if(!L||S.hidden.includes(n)) continue; const g=gapAt(L,a); if(!g) continue;
+    const lim=BUN.includes(n)?S.gapBun:S.gapSan; if(g.d<=lim) out.push({n,L,d:g.d,ang:g.ang,big:MAIN.includes(n),a:g.lo[2]||'空',b:g.hi[2]||'空'});}
+  // 24山 경계와 겹치는 分金 경계는 大空亡만 남긴다
+  return out.filter(x=>x.big||!out.some(y=>y.big&&Math.abs(mod(y.ang-x.ang+180)-180)<0.01));}
+function azNow(){return mod(-rot);}
+function sanLine(a){return `正針 <strong>${valAt(3,a)}</strong> · 中針 <strong>${valAt(12,a)}</strong> · 縫針 <strong>${valAt(20,a)}</strong>`;}   // 머리글용 HTML. 24山 값은 굵게
+let hashT;
+// 盤의 회전·이동·확대는 <svg>를 감싼 div의 CSS transform으로 준다. SVG 안의 transform 속성을 바꾸면 3천여 요소를 매 프레임 다시 그리지만,
+// div의 CSS transform(will-change)은 한 번 그려 둔 그림을 GPU가 돌리기만 하므로 폰에서도 매끄럽다. 좌표계는 그대로(svgPt·tap은 rot·px·py·zoom으로 계산)
+const wrapEl=$('discWrap'), sightEl=$('sight'), E={deg:$('deg'),san:$('san'),zdeg:$('zdeg'),zsan:$('zsan'),kong:$('kong')};
+let stW=0,stH=0; function measureStage(){const r=stage.getBoundingClientRect();stW=r.width;stH=r.height;}
+if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{measureStage();if(kongG)apply();}).observe(stage); else window.addEventListener('resize',()=>{measureStage();if(kongG)apply();});
+let lastKey=null,lastKongKey=null,lastReadKey='',lastAll=[],applyRAF=0;
+function scheduleApply(){if(!applyRAF)applyRAF=requestAnimationFrame(()=>{applyRAF=0;apply();});}   // 포인터 이벤트는 초당 120번도 오므로 한 프레임에 한 번만 그린다
+function apply(){
+  if(!kongG)return;
+  if(!stW)measureStage(); const sc=Math.min(stW,stH)/(2*VB);
+  const tx=(px*sc).toFixed(2)+'px', ty=(py*sc).toFixed(2)+'px';
+  wrapEl.style.transform=`translate(${tx},${ty}) scale(${zoom}) rotate(${rot.toFixed(3)}deg)`;
+  sightEl.style.setProperty('--sx',tx); sightEl.style.setProperty('--sy',ty);   // 붉은 가로·세로 선은 盤 가운데를 지나도록 같이 옮김(돌거나 커지지는 않음)
+  const az=azNow(), za=mod(az+180), azT=az.toFixed(1);
+  const key=azT+'|'+S.hidden.join()+'|'+S.kongL.join()+'|'+S.gapSan+'|'+S.gapBun;   // 0.1° 단위로 표시가 바뀔 때만 글·空亡을 다시 계산
+  if(key!==lastKey){lastKey=key;
+    E.deg.innerHTML=azT+'<span>°</span>'; E.san.innerHTML=sanLine(az);
+    E.zdeg.innerHTML=za.toFixed(1)+'<span>°</span>'; E.zsan.innerHTML=sanLine(za);
+    const kv=kongCheck(az), kz=kongCheck(za);
+    const all=lastAll=[...kv.map(x=>({...x,side:'向'})),...kz.map(x=>({...x,side:'坐'}))];
+    if(all.length){E.kong.classList.add('on');E.kong.textContent=all.map(x=>`${x.side} ${x.big?'大空亡':'小空亡'} ${x.a}|${x.b} 경계 ${x.d.toFixed(1)}°`).join(' · ');}
+    else{E.kong.classList.remove('on');E.kong.textContent='空亡 없음';}
+    const kk=all.map(x=>x.n+':'+x.ang.toFixed(2)).join();   // 空亡 선은 경계가 바뀔 때만 다시 그림
+    if(kk!==lastKongKey){lastKongKey=kk;kongG.innerHTML='';for(const x of all){const [x0,y0]=pol(x.L.r0-2,x.ang),[x1,y1]=pol(x.L.r1+2,x.ang);kongG.appendChild(el('line',{x1:x0,y1:y0,x2:x1,y2:y1}));}}
+    clearTimeout(hashT); hashT=setTimeout(()=>{try{history.replaceState(null,'','#az='+az.toFixed(1));}catch(e){}},250);
+  }
+  if(document.body.classList.contains('open')&&curTab==='read'&&key!==lastReadKey){lastReadKey=key;renderRead(az,za,lastAll);}   // 판독표(28줄)는 값이 바뀌었을 때만
+}
+function renderRead(az,za,all){
+  const b=$('rdBody'); b.innerHTML='';
+  for(const L of LAYERS){if(JG(L)&&S.hidden.includes(L.n))continue; const tr=document.createElement('tr'); if(S.hidden.includes(L.n))tr.className='dim'; else if(MAIN.includes(L.n))tr.className='main';
+    const v=valAt(L.n,az)||'—', z=valAt(L.n,za)||'—';
+    tr.innerHTML=`<td class="n">${L.n}. ${L.name}</td><td class="v">${v}</td><td class="v">${z}</td>`; b.appendChild(tr);}
+  if(document.activeElement!==$('azIn')) $('azIn').value=az.toFixed(1);
+  $('kongDetail').innerHTML=all.length?all.map(x=>`<span class="warn">${x.side} ${x.big?'大空亡':'小空亡'}</span> ${x.L.name} ${x.a}|${x.b} 경계에서 ${x.d.toFixed(2)}°`).join('<br>'):'<span class="ok">空亡 없음 · 검사 층: '+S.kongL.map(n=>byN(n)?byN(n).name:n).join(', ')+'</span>';
+}
+// ---- 서랍(패널) ----
+let curTab=null;
+function openTab(t,keep){const body=document.body;  // keep: 코드에서 여는 경우 — 이미 열려 있어도 닫지 않음
+  if(!keep&&t===curTab&&body.classList.contains('open')){closeDrawer();return;}
+  curTab=t; body.classList.add('open'); body.classList.toggle('t-site',t==='site'); body.classList.toggle('t-rec',t==='rec');
+  document.querySelectorAll('#tabs button[data-tab],footer .tabbtn').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+t));
+  if(t==='read') apply(); if(t==='layers') renderLayers(); if(t==='rec') renderRec(); if(t==='site') renderSite(); if(t==='set') renderSet(); if(t==='find') $('findIn').focus();
+}
+function closeDrawer(){document.body.classList.remove('open','t-site','t-rec');document.querySelectorAll('#tabs button[data-tab],footer .tabbtn').forEach(b=>b.classList.remove('on'));}
+document.querySelectorAll('#tabs button[data-tab],footer .tabbtn').forEach(b=>b.addEventListener('click',()=>openTab(b.dataset.tab)));
+$('bClose').addEventListener('click',closeDrawer);
+window.addEventListener('hashchange',()=>{const m=location.hash.match(/az=(-?[\d.]+)/); if(m&&Math.abs(mod(+m[1])-azNow())>0.05){if(sensor)stopSensor();setAz(+m[1]);}});
+// 판독: 각도 입력·링크
+function setAz(a){if(!isFinite(a))return;rot=-mod(a);apply();save();}
+$('bAz').addEventListener('click',()=>setAz(+$('azIn').value));
+$('azIn').addEventListener('keydown',e=>{if(e.key==='Enter'){setAz(+$('azIn').value);e.target.blur();}});
+$('bLink').addEventListener('click',async()=>{const u=location.href.replace(/#.*$/,'')+'#az='+azNow().toFixed(1);
+  if(NATIVE&&NATIVE.copyText){NATIVE.copyText(u);msg.textContent='링크를 복사했습니다: '+u;return;}
+  try{await navigator.clipboard.writeText(u);msg.textContent='링크를 복사했습니다: '+u;}catch(e){prompt('이 링크를 복사하십시오',u);}});
+// 층 탭
+function renderLayers(){const d=$('layerList'); d.innerHTML=''; $('cPan').checked=S.pan; $('cDeg').checked=S.deg;
+  const js=LAYERS.filter(JG); if(js.length){const cur=curGuk(); const box=document.createElement('div'); box.className='row';
+    box.innerHTML='<span class="note">十二長生 局:</span> '+js.map(l=>`<button class="sm ${cur&&cur.n===l.n?'on':''}" data-g="${l.n}">${l.name.replace('十二長生 ','')}</button>`).join('')+
+      ' <label class="note">水口 <select id="suguSel"><option value="">선택</option>'+Object.keys(GUK_OF_SUGU).map(k=>`<option>${k}</option>`).join('')+'</select></label>';
+    box.querySelectorAll('button[data-g]').forEach(b=>b.addEventListener('click',()=>setGuk(+b.dataset.g)));
+    box.querySelector('#suguSel').addEventListener('change',e=>{const g=GUK_OF_SUGU[e.target.value]; const l=js.find(x=>x.name.endsWith(g)); if(l){setGuk(l.n);msg.textContent=`水口 ${e.target.value} → ${g}`;}});
+    d.appendChild(box);}
+  for(const L of LAYERS){if(JG(L)&&S.hidden.includes(L.n))continue; const w=document.createElement('div'); w.className='chk';
+    w.innerHTML=`<input type="checkbox" id="ly${L.n}" ${S.hidden.includes(L.n)?'':'checked'}><label for="ly${L.n}"><b>${L.n}.</b> ${L.name} <span class="note">(${PAN[panOf(L.n)].name})</span></label>`;
+    const dd=document.createElement('div'); dd.className='desc'; dd.textContent=LAYER_INFO[L.n]||'';
+    w.querySelector('input').addEventListener('change',e=>{setHidden(L.n,!e.target.checked);});
+    d.appendChild(w); d.appendChild(dd);}
+}
+function curGuk(){const v=LAYERS.filter(l=>JG(l)&&!S.hidden.includes(l.n));return v.length?v[0]:null;}
+function enforceGuk(keepN){const js=LAYERS.filter(JG); if(!js.length)return; let keep=js.find(l=>l.n===keepN)||js.find(l=>!S.hidden.includes(l.n))||js[0];
+  for(const l of js){const off=l!==keep; S.hidden=S.hidden.filter(x=>x!==l.n); if(off)S.hidden.push(l.n); if(layerG[l.n])layerG[l.n].classList.toggle('off',off);}}
+function setGuk(n){const js=LAYERS.filter(JG); for(const l of js){const off=l.n!==n; S.hidden=S.hidden.filter(x=>x!==l.n); if(off)S.hidden.push(l.n); layerG[l.n].classList.toggle('off',off);} saveS(); renderLayers(); apply();}
+function setHidden(n,off){S.hidden=S.hidden.filter(x=>x!==n); if(off)S.hidden.push(n); layerG[n].classList.toggle('off',off); saveS(); apply();}
+$('bAllOn').addEventListener('click',()=>{const g=curGuk();S.hidden=[];for(const L of LAYERS)layerG[L.n].classList.remove('off');enforceGuk(g?g.n:undefined);saveS();renderLayers();apply();});
+$('bMainOnly').addEventListener('click',()=>{S.hidden=LAYERS.map(l=>l.n).filter(n=>!MAIN.includes(n));for(const L of LAYERS)layerG[L.n].classList.toggle('off',S.hidden.includes(L.n));saveS();renderLayers();apply();});
+$('cPan').addEventListener('change',e=>{S.pan=e.target.checked;disc.classList.toggle('nopan',!S.pan);saveS();});
+$('cDeg').addEventListener('change',e=>{S.deg=e.target.checked;saveS();build();lastKey=lastKongKey=null;apply();drawSiteMarks();});   // 눈금을 끄고 켜면 盤 크기(R·VB)가 바뀌므로 다시 그림. 空亡 선도 새로 그리도록 key를 비움
+// 찾기
+function doFind(){const q=$('findIn').value.trim(); const ul=$('findList'); ul.innerHTML=''; hlCell.setAttribute('d',''); if(!q) return;
+  const res=[]; for(const L of LAYERS){for(const c of L.cells){if(c[2]&&(c[2]===q||c[2].includes(q)))res.push({L,c});}}
+  if(!res.length){ul.innerHTML='<li><span class="note">없습니다.</span></li>';return;}
+  for(const {L,c} of res.slice(0,80)){const li=document.createElement('li'); const am=mod(c[0]+c[1]/2);
+    li.innerHTML=`<div class="g"><b>${c[2]}</b> · 第${numCN(L.n)}層 ${L.name}<small>${c[0].toFixed(1)}° ~ ${mod(c[0]+c[1]).toFixed(1)}° · 가운데 ${am.toFixed(1)}°</small></div><button class="sm">맞추기</button>`;
+    const go=()=>{hlCell.setAttribute('d',wedge(L,c[0],c[1]));hl.setAttribute('r',0);setAz(am);msg.textContent=`${L.name} ${c[2]} 칸을 붉은 선 아래로 맞췄습니다.`;};
+    li.querySelector('.g').addEventListener('click',()=>{hlCell.setAttribute('d',wedge(L,c[0],c[1]));});
+    li.querySelector('button').addEventListener('click',go); ul.appendChild(li);}
+  if(res.length>80){const li=document.createElement('li');li.innerHTML=`<span class="note">${res.length}곳 중 80곳만 표시</span>`;ul.appendChild(li);}
+}
+$('findIn').addEventListener('input',doFind);
+$('bFindClear').addEventListener('click',()=>{$('findIn').value='';doFind();});
+// ===== 기록 v2: 고유 번호(id)·수정 시각(m)·기기(dev)·지움 표시(del) =====
+// 기기 사이에 기록을 합칠 때 같은 번호는 수정 시각이 늦은 쪽을 남긴다. 지운 기록은 지움 표시만 남겨 다른 기기에도 삭제가 전해진다.
+const REC_KEY='nagyeong.rec', PUBLIC_URL='https://kyengilam-coder.github.io/YeonEo_Nakyeng_release/';
+function rid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,10);}
+function hashId(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return 'L'+h.toString(36);}
+function defaultDev(){const u=navigator.userAgent;if(NATIVE)return 'Android 앱';if(/iPad/.test(u)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))return 'iPad';if(/iPhone/.test(u))return 'iPhone';if(/Android/.test(u))return 'Android';if(/Windows/.test(u))return 'Windows PC';if(/Mac/.test(u))return 'Mac';return 'PC';}
+function devName(){return (S.dev||'').trim()||defaultDev();}
+function normRec(r){ // 옛 기록(번호 없음)·외부 기록을 v2 형태로. 번호가 없으면 시각·각도·메모로 같은 번호를 만들어 두 번 가져와도 겹치지 않게 한다
+  if(!r||typeof r!=='object')return null; const az=+r.az; if(!isFinite(az))return null; const t=+r.t||Date.now();
+  const o={id:String(r.id||hashId(`${t}|${az.toFixed(2)}|${r.memo||''}`)),t,m:+r.m||t,dev:String(r.dev||''),az:mod(az),za:isFinite(+r.za)?mod(+r.za):mod(az+180),memo:String(r.memo||''),kind:KINDS[r.kind]?r.kind:'坐向',site:String(r.site||'').trim(),del:!!r.del};
+  if(r.lat!=null&&r.lon!=null&&isFinite(+r.lat)&&isFinite(+r.lon)){o.lat=+r.lat;o.lon=+r.lon;if(r.acc!=null&&isFinite(+r.acc))o.acc=+r.acc;}
+  if(r.decl!=null&&isFinite(+r.decl))o.decl=+r.decl; if(r.sensor!=null)o.sensor=!!r.sensor; return o;}
+let REC=[]; try{REC=JSON.parse(localStorage.getItem(REC_KEY)||'[]').map(normRec).filter(Boolean);}catch(e){}
+function persistRec(){try{localStorage.setItem(REC_KEY,JSON.stringify(REC));}catch(e){}}
+function saveRec(){persistRec();scheduleSync();drawSiteMarks();}
+const liveRec=()=>REC.filter(r=>!r.del);
+const sigOf=list=>list.map(r=>r.id+':'+r.m+':'+(r.del?1:0)).sort().join(',');
+// 병합. 돌려주는 값: 새로 들어온 수, 갱신된 수, 삭제가 반영된 수, 바뀌었는지
+function mergeRecs(incoming){const by=new Map(REC.map(r=>[r.id,r]));let added=0,updated=0,deleted=0,changed=false;
+  for(const raw of incoming||[]){const r=normRec(raw);if(!r)continue;const cur=by.get(r.id);
+    if(!cur){by.set(r.id,r);changed=true;if(!r.del)added++;}
+    else if(r.m>cur.m||(r.m===cur.m&&r.del&&!cur.del)){by.set(r.id,r);changed=true;if(r.del&&!cur.del)deleted++;else if(!r.del)updated++;}}
+  if(changed)REC=[...by.values()].sort((a,b)=>a.t-b.t); return {added,updated,deleted,changed};}
+function mergeReport(res,from){const parts=[];if(res.added)parts.push(`새 기록 ${res.added}`);if(res.updated)parts.push(`갱신 ${res.updated}`);if(res.deleted)parts.push(`삭제 반영 ${res.deleted}`);
+  return (from?from+': ':'')+(parts.length?parts.join(', '):'새로운 내용 없음');}
+function applyImport(list,from){const res=mergeRecs(list);if(res.changed){saveRec();}renderRec();msg.textContent=mergeReport(res,from);return res;}
+function fmtT(t){const d=new Date(t);const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;}
+// 확인창(confirm) 대신 두 번 누르기: 첫 번째 누름은 단추 글을 바꾸고 3초 안에 다시 누르면 실행
+function armed(b,label){if(b.dataset.armed){clearTimeout(+b.dataset.t);delete b.dataset.armed;b.textContent=b.dataset.orig;b.classList.remove('danger');return true;}
+  b.dataset.orig=b.textContent;b.dataset.armed='1';b.textContent=label;b.classList.add('danger');
+  b.dataset.t=setTimeout(()=>{if(b.dataset.armed){delete b.dataset.armed;b.textContent=b.dataset.orig;b.classList.remove('danger');}},3000);return false;}
+let siteFilter='';
+function renderRec(){drawSiteMarks();if(curTab==='site'&&document.body.classList.contains('open'))renderSite();   // 터 화면이 열려 있으면 같이 갱신
+  const ul=$('recList'); ul.innerHTML=''; $('cGps').checked=S.gps; renderSyncLine(); if(document.activeElement!==$('siteIn'))$('siteIn').value=S.site||'';
+  const all=liveRec(); const sites=[...new Set(all.map(r=>r.site).filter(Boolean))].sort(); const sel=$('siteSel'); if(!sites.includes(siteFilter))siteFilter='';
+  sel.innerHTML='<option value="">전체</option>'+sites.map(x=>`<option${x===siteFilter?' selected':''}>${x.replace(/</g,'&lt;')}</option>`).join(''); sel.style.display=sites.length?'':'none';
+  const rows=siteFilter?all.filter(r=>r.site===siteFilter):all; $('recCount').textContent=rows.length?`${rows.length}건`:'';
+  if(!rows.length){ul.innerHTML='<li><span class="note">저장된 기록이 없습니다.</span></li>';return;}
+  // 터별로 모아 보여 줌: 최근에 잰 터가 위, 터 안에서는 최근 기록이 위. 터 없는 기록은 맨 끝
+  const groups=new Map();rows.slice().reverse().forEach(r=>{const k=r.site||'';if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r);});
+  const keys=[...groups.keys()].sort((a,b)=>(a==='')-(b==='')||groups.get(b)[0].t-groups.get(a)[0].t);
+  const head=!siteFilter&&(keys.length>1||keys[0]!=='');
+  keys.forEach(k=>{if(head){const h=document.createElement('li');h.className='grp';h.innerHTML=`${k?'터 '+hEsc(k):'터 없음'}<span>${groups.get(k).length}건</span>`;ul.appendChild(h);}
+  groups.get(k).forEach(r=>{const li=document.createElement('li');li.className='rc';
+    const meta=[r.memo?hEsc(r.memo):'',!head&&r.site?'터 '+hEsc(r.site):'',fmtT(r.t),r.dev?hEsc(r.dev):'',r.lat!=null?`${r.lat.toFixed(5)}, ${r.lon.toFixed(5)}`:''].filter(Boolean).join(' · ');
+    li.innerHTML=`<div class="g"><div class="v"><span><span class="kd k-${KINDS[r.kind]?Object.keys(KINDS).indexOf(r.kind):0}">${hEsc(r.kind)}</span>${kindNote(r)}</span><span class="az">${r.az.toFixed(1)}°</span></div><small>${meta}</small></div><div class="acts"><button class="sm">불러오기</button><button class="sm">삭제</button></div>`;
+    const [bl,bd]=li.querySelectorAll('button');
+    bl.addEventListener('click',()=>{if(sensor)stopSensor();setAz(r.az);openTab('read',true);});
+    bd.addEventListener('click',()=>{if(armed(bd,'정말 삭제')){r.del=true;r.m=Date.now();r.dev=devName();saveRec();renderRec();msg.textContent='기록을 삭제했습니다.';}});
+    li.querySelector('.g').addEventListener('click',()=>{if(r.lat!=null)openExternal(`https://www.google.com/maps?q=${r.lat},${r.lon}`);});
+    ul.appendChild(li);});});
+}
+$('cGps').addEventListener('change',e=>{S.gps=e.target.checked;saveS();});
+$('siteSel').addEventListener('change',e=>{siteFilter=e.target.value;renderRec();});
+$('bRecSite').addEventListener('click',()=>{if(siteFilter)stSite=siteFilter;openTab('site',true);});
+$('siteIn').addEventListener('change',e=>{S.site=e.target.value.trim();saveS();});
+$('bSave').addEventListener('click',()=>{const az=azNow(); const now=Date.now(); S.site=$('siteIn').value.trim();saveS();const r={id:rid(),t:now,m:now,dev:devName(),kind:'坐向',site:S.site,az,za:mod(az+180),memo:$('memoIn').value.trim(),decl:S.declOn?S.decl:null,sensor,del:false};
+  const done=()=>{REC.push(r);saveRec();$('memoIn').value='';renderRec();msg.textContent='저장했습니다.';};
+  if(S.gps&&navigator.geolocation){msg.textContent='위치를 읽는 중…';navigator.geolocation.getCurrentPosition(p=>{r.lat=p.coords.latitude;r.lon=p.coords.longitude;r.acc=p.coords.accuracy;done();},()=>{msg.textContent='위치를 읽지 못해 방위만 저장합니다.';done();},{timeout:8000,enableHighAccuracy:true});}
+  else done();});
+function csvText(list=liveRec()){const esc=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
+  const rows=[['일시','종류','터','方位°','坐°','坐向(正針)','坐分金','向分金','中針向','縫針向','雙山','메모','위도','경도','磁偏角보정','센서','기기','번호'].map(esc).join(',')];
+  for(const r of list)rows.push([fmtT(r.t),r.kind,r.site,r.az.toFixed(1),r.za.toFixed(1),r.kind==='坐向'?`${valAt(3,r.za)}坐${valAt(3,r.az)}向`:'',valAt(6,r.za),valAt(6,r.az),valAt(12,r.az),valAt(20,r.az),ssOf(r.az),r.memo,r.lat??'',r.lon??'',r.decl??'',r.sensor?'나침반':'수동',r.dev,r.id].map(esc).join(','));
+  return '﻿'+rows.join('\r\n');}
+$('bCsv').addEventListener('click',()=>{if(!liveRec().length){msg.textContent='저장된 기록이 없습니다.';return;}offerFile('nagyeong-'+new Date().toISOString().slice(0,10)+'.csv',csvText());});
+function openExternal(u){if(NATIVE&&NATIVE.openExternal){NATIVE.openExternal(u);return;}window.open(u,'_blank');}
+const mimeOf=n=>/\.json$/i.test(n)?'application/json':/\.csv$/i.test(n)?'text/csv':'text/plain';
+async function offerFile(name,text){
+  if(NATIVE&&NATIVE.saveText){const r=NATIVE.saveText(name,text);msg.textContent=r?('저장했습니다: '+r):'저장하지 못했습니다.';return;}
+  try{if(window.claude&&typeof claude.use==='function'){const d=await claude.use('downloads'); if(d){await d.save({filename:name,data:text});msg.textContent='저장했습니다.';return;}}}
+  catch(e){if(e&&e.code==='declined')return; if(e&&e.code&&e.code!=='unavailable'){msg.textContent='저장하지 못했습니다: '+e.code;return;}}
+  try{const blob=new Blob([text],{type:mimeOf(name)+';charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();}
+  catch(e){prompt('복사하십시오',text);}}
+
+// ---- A. 파일로 옮기기 ----
+function exportObj(list=REC,site){const o={app:'nakyeng',ver:2,dev:devName(),exported:Date.now()};if(site)o.site=site;o.records=list;return o;}   // site: 터 하나만 담을 때 그 이름
+function exportName(){return 'nakyeng-records-'+new Date().toISOString().slice(0,10)+'.json';}
+$('bExport').addEventListener('click',()=>offerFile(exportName(),JSON.stringify(exportObj(),null,1)));
+$('bImport').addEventListener('click',()=>$('fileIn').click());
+$('fileIn').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(f)await importText(await f.text(),'파일 '+f.name);});
+$('bShare').addEventListener('click',()=>shareRecords());
+async function shareRecords(list=REC,name=exportName(),title='나경 기록',site){const text=JSON.stringify(exportObj(list,site));
+  if(NATIVE&&NATIVE.shareText){NATIVE.shareText(name,text);return;}
+  try{if(navigator.canShare){const f=new File([text],name,{type:'application/json'});if(navigator.canShare({files:[f]})){await navigator.share({files:[f],title});msg.textContent='보냈습니다.';return;}}}
+  catch(e){if(e&&e.name==='AbortError')return;}
+  await offerFile(name,text);msg.textContent='이 기기에는 보내기 창이 없어 파일로 저장했습니다. 메일·메신저에 붙여 보내십시오.';}
+// 끌어다 놓기(PC)
+let dragT;document.addEventListener('dragover',e=>{e.preventDefault();document.body.classList.add('drop');clearTimeout(dragT);dragT=setTimeout(()=>document.body.classList.remove('drop'),400);});
+document.addEventListener('drop',async e=>{e.preventDefault();document.body.classList.remove('drop');const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+  if(f){if(/\.(png|jpe?g|webp|gif|bmp)$/i.test(f.name)){await decodeQrImage(f);}else await importText(await f.text(),'파일 '+f.name);}
+  else{const t=e.dataTransfer&&e.dataTransfer.getData('text');if(t)await importText(t,'끌어 놓은 글');}});
+// 글 판별: 파일 내용·링크·QR 조각·연결 코드
+function parseCsv(text){const rows=[];let row=[],cell='',q=false;text=text.replace(/^﻿/,'');
+  for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'){if(text[i+1]==='"'){cell+='"';i++;}else q=false;}else cell+=c;}
+    else if(c==='"')q=true;else if(c===','){row.push(cell);cell='';}else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);rows.push(row);row=[];cell='';}else cell+=c;}
+  if(cell||row.length){row.push(cell);rows.push(row);}
+  const h=rows.shift()||[];const ix=n=>h.indexOf(n);const iT=ix('일시'),iAz=ix('方位°')>=0?ix('方位°'):ix('向°'),iK=ix('종류'),iSite=ix('터'),iM=ix('메모'),iLa=ix('위도'),iLo=ix('경도'),iD=ix('磁偏角보정'),iS=ix('센서'),iDev=ix('기기'),iId=ix('번호');
+  if(iT<0||iAz<0)throw new Error('나경 CSV가 아닙니다');
+  return rows.filter(r=>r.length>iAz&&r[iAz]!=='').map(r=>{const m=(r[iT]||'').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);const t=m?new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5]).getTime():Date.now();
+    return {id:iId>=0&&r[iId]?r[iId]:undefined,t,az:+r[iAz],memo:iM>=0?r[iM]:'',lat:iLa>=0&&r[iLa]!==''?+r[iLa]:null,lon:iLo>=0&&r[iLo]!==''?+r[iLo]:null,decl:iD>=0&&r[iD]!==''?+r[iD]:null,sensor:iS>=0?r[iS]==='나침반':undefined,dev:iDev>=0?r[iDev]:'',kind:iK>=0?r[iK]:undefined,site:iSite>=0?r[iSite]:''};});}
+async function importText(text,from){text=String(text||'').trim();if(!text){msg.textContent='빈 내용입니다.';return;}
+  try{
+    if(text.startsWith('nkc:')){await connectFromCode(text);return;}
+    if(text.startsWith('NKQ|')){await takeQrFrame(text);return;}
+    const lm=text.match(/[#&]rec=([^&\s]+)/); if(lm){const list=unpackRecords(await inflate(lm[1]));confirmImport(list,from||'링크');return;}
+    if(/^https?:\/\//.test(text)){msg.textContent='기록이 담긴 링크가 아닙니다.';return;}
+    if(text[0]==='{'||text[0]==='['){const j=JSON.parse(text);const list=Array.isArray(j)?j:(j.records||j.rec);if(!Array.isArray(list))throw new Error('기록 형식이 아닙니다');confirmImport(list,(from||'JSON')+(j.site?` (터 "${j.site}")`:''));return;}
+    if(/^"?일시/.test(text)){confirmImport(parseCsv(text),from||'CSV');return;}
+    throw new Error('알 수 없는 형식');
+  }catch(e){msg.textContent='가져오지 못했습니다: '+e.message;}}
+function confirmImport(list,from){const rows=list.map(normRec).filter(Boolean);const live=rows.filter(r=>!r.del).length,dels=rows.length-live;const devs=[...new Set(rows.map(r=>r.dev).filter(Boolean))];
+  const body=document.createElement('div');body.innerHTML=`<p>${from}에서 기록 <b>${live}</b>건${dels?` (지움 표시 ${dels}건)`:''}${devs.length?` · 기기: ${devs.join(', ')}`:''}</p><p class="note">같은 번호의 기록은 수정 시각이 늦은 쪽을 남기고, 나머지는 더합니다. 이 기기의 기록이 지워지지는 않습니다.</p>`;
+  showModal('기록 가져오기',body,[{label:'가져오기',cls:'on',fn:()=>{closeModal();applyImport(rows,from);openTab('rec',true);}},{label:'취소',fn:closeModal}]);}
+
+// ---- B. 링크·QR ----
+function packRecords(list){return JSON.stringify({v:2,dev:devName(),r:list.map(r=>[r.id,r.t,r.m,r.dev,+r.az.toFixed(2),r.memo,r.lat??null,r.lon??null,r.decl??null,r.sensor?1:0,r.del?1:0,r.kind||'坐向',r.site||''])});}
+function unpackRecords(s){const j=JSON.parse(s);if(!j||!Array.isArray(j.r))throw new Error('기록 형식이 아닙니다');
+  return j.r.map(a=>({id:a[0],t:a[1],m:a[2],dev:a[3],az:a[4],memo:a[5],lat:a[6],lon:a[7],decl:a[8],sensor:!!a[9],del:!!a[10],kind:a[11],site:a[12]}));}
+function b64u(b){let s='';for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode.apply(null,b.subarray(i,i+8192));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function unb64u(s){s=s.replace(/-/g,'+').replace(/_/g,'/');s+='='.repeat((4-s.length%4)%4);const t=atob(s);const u=new Uint8Array(t.length);for(let i=0;i<t.length;i++)u[i]=t.charCodeAt(i);return u;}
+async function deflate(str){const u=new TextEncoder().encode(str);if(typeof CompressionStream==='undefined')return 'j'+b64u(u);
+  const cs=new CompressionStream('deflate-raw');const w=cs.writable.getWriter();w.write(u);w.close();return 'z'+b64u(new Uint8Array(await new Response(cs.readable).arrayBuffer()));}
+async function inflate(s){const kind=s[0],u=unb64u(s.slice(1));if(kind==='j')return new TextDecoder().decode(u);if(kind!=='z')throw new Error('링크 형식이 아닙니다');
+  if(typeof DecompressionStream==='undefined')throw new Error('이 브라우저는 압축 링크를 풀지 못합니다. 파일이나 붙여넣기를 쓰십시오');
+  const ds=new DecompressionStream('deflate-raw');const w=ds.writable.getWriter();w.write(u);w.close();return new TextDecoder().decode(await new Response(ds.readable).arrayBuffer());}
+function linkBase(){return /^https?:$/.test(location.protocol)&&!/claude\.ai$/.test(location.hostname)?location.href.replace(/[#?].*$/,''):PUBLIC_URL;}
+async function recordsLink(list=REC){if(!list.length)throw new Error('저장된 기록이 없습니다');return linkBase()+'#rec='+await deflate(packRecords(list));}
+async function copyRecordsLink(list,what){try{const u=await recordsLink(list);
+  if(NATIVE&&NATIVE.copyText){NATIVE.copyText(u);}else{try{await navigator.clipboard.writeText(u);}catch(e){prompt('이 링크를 복사하십시오',u);}}
+  msg.textContent=`${what} 링크를 복사했습니다 (${u.length.toLocaleString()}자). 메신저·메일로 보내면 받는 쪽에서 열자마자 가져오기 창이 뜹니다.`+(u.length>6000?' 링크가 길어 잘릴 수 있으니 그럴 때는 파일이나 QR을 쓰십시오.':'');}
+  catch(e){msg.textContent=e.message;}}
+$('bRecLink').addEventListener('click',()=>copyRecordsLink(REC,'기록'));
+// QR 보이기: 여러 장으로 나눠 자동으로 넘김. 조각 형식 NKQ|번호|전체|내용
+const QR_CHUNK=500;
+function loadScript(src){return new Promise((ok,no)=>{if(document.querySelector(`script[data-src="${src}"]`)){ok();return;}const s=document.createElement('script');s.src=src;s.dataset.src=src;s.onload=ok;s.onerror=()=>no(new Error(src+'를 읽지 못했습니다'));document.head.appendChild(s);});}
+function drawQr(canvas,text){const q=qrcode(0,'M');q.addData(text,'Byte');q.make();const n=q.getModuleCount();const size=Math.min(canvas.clientWidth||320,360);const cell=Math.floor((size-16)/n);const px=cell*n+16;canvas.width=px;canvas.height=px;
+  const g=canvas.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,px,px);g.fillStyle='#000';for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))g.fillRect(8+c*cell,8+r*cell,cell,cell);}
+async function showQrFrames(frames,title,note){await loadScript('vendor/qrcode.min.js');let i=0,timer=null;
+  const body=document.createElement('div');body.innerHTML=`<canvas id="qrCv" style="width:min(80vw,360px);height:auto;display:block;margin:0 auto;border-radius:8px"></canvas><div class="row" style="justify-content:center"><button class="sm" id="qrPrev">◀</button><span id="qrIdx"></span><button class="sm" id="qrNext">▶</button><button class="sm" id="qrAuto">자동 넘김</button></div><p class="note">${note||''}</p>`;
+  const cv=()=>body.querySelector('#qrCv');const show=()=>{drawQr(cv(),frames[i]);body.querySelector('#qrIdx').textContent=`${i+1} / ${frames.length}`;};
+  body.querySelector('#qrPrev').addEventListener('click',()=>{i=(i-1+frames.length)%frames.length;show();});body.querySelector('#qrNext').addEventListener('click',()=>{i=(i+1)%frames.length;show();});
+  const auto=body.querySelector('#qrAuto');const toggle=()=>{if(timer){clearInterval(timer);timer=null;auto.classList.remove('on');}else{timer=setInterval(()=>{i=(i+1)%frames.length;show();},1500);auto.classList.add('on');}};auto.addEventListener('click',toggle);
+  showModal(title,body,[{label:'닫기',fn:()=>{if(timer)clearInterval(timer);closeModal();}}]);show();if(frames.length>1)toggle();}
+async function showRecordsQr(list=REC,title='기록 QR'){try{if(!list.length)throw new Error('저장된 기록이 없습니다');const packed=await deflate(packRecords(list));const n=Math.ceil(packed.length/QR_CHUNK);const frames=[];for(let k=0;k<n;k++)frames.push(`NKQ|${k+1}|${n}|${packed.slice(k*QR_CHUNK,(k+1)*QR_CHUNK)}`);
+  await showQrFrames(frames,title,n>1?`${n}장으로 나뉘어 있습니다. 다른 기기의 "QR 읽기"로 카메라를 대고 있으면 차례로 읽힙니다.`:'다른 기기의 "QR 읽기"로 읽으십시오.');}catch(e){msg.textContent=e.message;}}
+$('bQrShow').addEventListener('click',()=>showRecordsQr());
+// QR 읽기: 카메라 → 조각 모음 → 가져오기. 카메라가 없으면 사진 파일로
+let qrParts=null;
+async function takeQrFrame(text){const m=text.match(/^NKQ\|(\d+)\|(\d+)\|([\s\S]*)$/);if(!m)return false;const i=+m[1],n=+m[2];
+  if(!qrParts||qrParts.n!==n)qrParts={n,got:new Map()};qrParts.got.set(i,m[3]);setScanStatus(`${qrParts.got.size} / ${n} 장 읽음`);
+  if(qrParts.got.size===n){let s='';for(let k=1;k<=n;k++)s+=qrParts.got.get(k);qrParts=null;stopScan();const list=unpackRecords(await inflate(s));confirmImport(list,'QR');}
+  return true;}
+let scanStream=null,scanTimer=null;
+function setScanStatus(t){const e=document.getElementById('scanStatus');if(e)e.textContent=t;}
+function stopScan(){if(scanTimer){cancelAnimationFrame(scanTimer);scanTimer=null;}if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}}
+async function handleQrText(text){if(text.startsWith('NKQ|')){await takeQrFrame(text);return;}stopScan();closeModal();await importText(text,'QR');}
+$('bQrScan').addEventListener('click',async()=>{qrParts=null;
+  const body=document.createElement('div');body.innerHTML=`<video id="scanV" playsinline muted style="width:100%;max-height:60vh;border-radius:8px;background:#000"></video><p id="scanStatus" class="note" style="text-align:center">카메라를 여는 중…</p><div class="row" style="justify-content:center"><button class="sm" id="scanPhoto">사진으로 읽기</button></div>`;
+  showModal('QR 읽기',body,[{label:'닫기',fn:()=>{stopScan();closeModal();}}]);
+  body.querySelector('#scanPhoto').addEventListener('click',()=>$('qrImgIn').click());
+  try{await loadScript('vendor/jsQR.min.js');if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('카메라를 쓸 수 없는 환경');
+    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+    const v=body.querySelector('#scanV');v.srcObject=scanStream;await v.play();setScanStatus('QR을 화면에 맞추십시오');
+    const cv=document.createElement('canvas'),g=cv.getContext('2d',{willReadFrequently:true});let last='';
+    const tick=()=>{if(!scanStream)return;if(v.videoWidth){cv.width=v.videoWidth;cv.height=v.videoHeight;g.drawImage(v,0,0);const d=g.getImageData(0,0,cv.width,cv.height);const c=jsQR(d.data,d.width,d.height,{inversionAttempts:'dontInvert'});
+      if(c&&c.data&&c.data!==last){last=c.data;handleQrText(c.data);setTimeout(()=>{last='';},1200);}}
+      scanTimer=requestAnimationFrame(tick);};scanTimer=requestAnimationFrame(tick);}
+  catch(e){setScanStatus('카메라를 열지 못했습니다 ('+(e.message||e.name)+'). 아래 "사진으로 읽기"로 QR을 찍은 사진을 고르십시오.');}});
+$('qrImgIn').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(f)await decodeQrImage(f);});
+async function decodeQrImage(file){try{await loadScript('vendor/jsQR.min.js');const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>no(new Error('그림을 읽지 못했습니다'));i.src=URL.createObjectURL(file);});
+  const cv=document.createElement('canvas');const s=Math.min(1,1600/Math.max(img.width,img.height));cv.width=Math.round(img.width*s);cv.height=Math.round(img.height*s);const g=cv.getContext('2d');g.drawImage(img,0,0,cv.width,cv.height);const d=g.getImageData(0,0,cv.width,cv.height);
+  const c=jsQR(d.data,d.width,d.height);if(!c||!c.data)throw new Error('사진에서 QR을 찾지 못했습니다');await handleQrText(c.data);}
+  catch(e){msg.textContent=e.message;setScanStatus(e.message);}}
+// 붙여넣기
+$('bPaste').addEventListener('click',()=>{const body=document.createElement('div');body.innerHTML=`<textarea id="pasteIn" rows="6" style="width:100%;box-sizing:border-box" placeholder="기록 링크, 기록 파일 내용(JSON·CSV), 또는 연결 코드(nkc:…)를 붙여 넣으십시오"></textarea>`;
+  showModal('붙여넣기로 가져오기',body,[{label:'가져오기',cls:'on',fn:async()=>{const t=body.querySelector('#pasteIn').value;closeModal();await importText(t,'붙여넣기');}},{label:'취소',fn:closeModal}]);setTimeout(()=>body.querySelector('#pasteIn').focus(),50);});
+// 주소에 기록이 담겨 열렸을 때
+async function checkRecHash(){const m=(location.hash+location.search).match(/[#&?]rec=([^&\s]+)/);if(!m)return;try{const list=unpackRecords(await inflate(m[1]));try{history.replaceState(null,'','#az='+azNow().toFixed(1));}catch(e){}confirmImport(list,'링크');}catch(e){msg.textContent='링크의 기록을 읽지 못했습니다: '+e.message;}}
+window.addEventListener('hashchange',checkRecHash);
+
+// ---- C. 자동 동기화 (GitHub Gist) ----
+// 설정의 GitHub 토큰으로 비공개 Gist 하나(nakyeng-records)에 기록을 두고, 저장·삭제 뒤와 앱을 열 때 합친다.
+const GH='https://api.github.com', GIST_DESC='nakyeng-records', GIST_FILE='nakyeng-records.json';
+let syncing=false,syncT=null;
+const syncOn=()=>!!(S.sync&&S.sync.token&&S.sync.gistId);
+async function gh(path,opt={}){const r=await fetch(GH+path,{...opt,headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+S.sync.token,'X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json',...(opt.headers||{})}});
+  if(!r.ok){let m='';try{m=(await r.json()).message||'';}catch(e){}throw new Error(r.status===401?'토큰이 틀리거나 만료됐습니다':r.status===403?'권한이 없습니다 (토큰에 gist 권한이 있는지 확인)':`GitHub ${r.status} ${m}`);}
+  return r.status===204?null:r.json();}
+function setSyncStatus(t){S.syncMsg=t;const e=$('syncStatus');if(e)e.textContent=t;renderSyncLine();}
+function renderSyncLine(){const e=$('syncLine');if(!e)return;
+  const on=syncOn()&&!!S.sync.auto;
+  e.innerHTML=`<label class="chk"><input type="checkbox" id="cRecSync"${on?' checked':''}>자동 동기화</label>`+(syncOn()?`<span class="note">${S.sync.last?'마지막 '+fmtT(S.sync.last):'아직 안 함'}${S.syncMsg&&/실패|중/.test(S.syncMsg)?' · '+S.syncMsg:''}</span> <button class="sm" id="syncNowB">지금 동기화</button>`:'<span class="note">GitHub 연결 필요</span>');
+  e.querySelector('#cRecSync').addEventListener('change',ev=>{   // 연결 전이면 설정 탭의 연결 칸으로 안내, 연결돼 있으면 자동 동기화만 켜고 끔
+    if(!syncOn()){ev.target.checked=false;openTab('set',true);msg.textContent='자동 동기화를 켜려면 먼저 GitHub 토큰으로 연결하십시오(설정 → 기록 자동 동기화).';return;}
+    S.sync.auto=ev.target.checked;saveS();if(S.sync.auto)syncNow(false);msg.textContent=S.sync.auto?'자동 동기화를 켰습니다.':'자동 동기화를 껐습니다. "지금 동기화"로 손수 맞출 수 있습니다.';});
+  if(syncOn())e.querySelector('#syncNowB').addEventListener('click',()=>syncNow(true));}
+function scheduleSync(){if(!syncOn()||!S.sync.auto)return;clearTimeout(syncT);syncT=setTimeout(()=>syncNow(false),3000);}
+async function syncNow(manual){if(!syncOn()){if(manual)msg.textContent='설정에서 먼저 연결하십시오.';return;}if(syncing)return;if(!navigator.onLine){setSyncStatus('오프라인 · 연결되면 다시 시도');return;}
+  syncing=true;setSyncStatus('동기화 중…');
+  try{const g=await gh('/gists/'+S.sync.gistId);const f=g.files&&g.files[GIST_FILE];let content=f?f.content:'';if(f&&f.truncated){content=await (await fetch(f.raw_url)).text();}
+    let remote=[];try{const j=JSON.parse(content||'{}');remote=(Array.isArray(j)?j:(j.records||[])).map(normRec).filter(Boolean);}catch(e){}
+    const res=mergeRecs(remote);if(res.changed){persistRec();renderRec();}
+    if(sigOf(REC)!==sigOf(remote)){await gh('/gists/'+S.sync.gistId,{method:'PATCH',body:JSON.stringify({files:{[GIST_FILE]:{content:JSON.stringify(exportObj())}}})});}
+    S.sync.last=Date.now();saveS();setSyncStatus('완료');if(manual||res.changed)msg.textContent='동기화 '+mergeReport(res,'');}
+  catch(e){setSyncStatus('실패: '+e.message);if(manual)msg.textContent='동기화 실패: '+e.message;}
+  finally{syncing=false;}}
+async function syncConnect(token,gistId){token=(token||'').trim();if(!token)throw new Error('토큰을 넣으십시오');
+  S.sync={token,gistId:gistId||null,auto:true,last:0};
+  if(!S.sync.gistId){const gists=await gh('/gists?per_page=100');const g=gists.find(x=>x.description===GIST_DESC&&x.files&&x.files[GIST_FILE]);
+    if(g)S.sync.gistId=g.id;else{const made=await gh('/gists',{method:'POST',body:JSON.stringify({description:GIST_DESC,public:false,files:{[GIST_FILE]:{content:JSON.stringify(exportObj())}}})});S.sync.gistId=made.id;}}
+  saveS();await syncNow(true);}
+function syncDisconnect(){S.sync=null;S.syncMsg='';saveS();renderSet();renderSyncLine();msg.textContent='동기화 연결을 끊었습니다. 기록은 이 기기에 그대로 있습니다.';}
+async function connectFromCode(code){const m=code.match(/^nkc:([^:\s]+):([^:\s]+)$/);if(!m)throw new Error('연결 코드 형식이 아닙니다');
+  const body=document.createElement('div');body.innerHTML='<p>다른 기기의 동기화 설정(GitHub 토큰)을 이 기기에 넣고 기록을 합칩니다.</p>';
+  showModal('동기화 연결',body,[{label:'연결',cls:'on',fn:async()=>{closeModal();try{await syncConnect(m[1],m[2]);renderSet();msg.textContent='동기화를 연결했습니다.';}catch(e){msg.textContent='연결 실패: '+e.message;}}},{label:'취소',fn:closeModal}]);}
+window.addEventListener('online',()=>scheduleSync());
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&syncOn()&&S.sync.auto)syncNow(false);});
+setInterval(()=>{if(syncOn()&&S.sync.auto&&!document.hidden)syncNow(false);},5*60*1000);
+// 설정 탭의 동기화 부분
+function renderSyncSet(){$('devIn').value=S.dev||'';$('devIn').placeholder=defaultDev();const on=syncOn();$('syncOff').style.display=on?'none':'';$('syncOnBox').style.display=on?'':'none';
+  if(on){$('cAutoSync').checked=!!S.sync.auto;$('syncStatus').textContent=(S.sync.last?'마지막 동기화 '+fmtT(S.sync.last):'아직 동기화하지 않음')+(S.syncMsg?' · '+S.syncMsg:'');}}
+$('devIn').addEventListener('change',e=>{S.dev=e.target.value.trim();saveS();});
+$('bSyncConnect').addEventListener('click',async()=>{const b=$('bSyncConnect');b.disabled=true;b.textContent='연결 중…';try{await syncConnect($('tokenIn').value);$('tokenIn').value='';renderSyncSet();msg.textContent='동기화를 연결했습니다. 다른 기기는 "연결 QR"로 이어 주십시오.';}catch(e){msg.textContent='연결 실패: '+e.message;}finally{b.disabled=false;b.textContent='연결';}});
+$('bSyncOff').addEventListener('click',()=>{if(armed($('bSyncOff'),'정말 끊기'))syncDisconnect();});
+$('cAutoSync').addEventListener('change',e=>{S.sync.auto=e.target.checked;saveS();if(S.sync.auto)scheduleSync();});
+$('bSyncNow').addEventListener('click',()=>syncNow(true));
+$('bSyncQr').addEventListener('click',async()=>{if(!syncOn())return;await showQrFrames([`nkc:${S.sync.token}:${S.sync.gistId}`],'동기화 연결 QR','다른 기기에서 기록 → "QR 읽기"로 읽으면 같은 저장소에 연결됩니다. 이 QR에는 GitHub 토큰이 들어 있으니 다른 사람에게 보이지 마십시오.');});
+$('bSyncCode').addEventListener('click',async()=>{if(!syncOn())return;const c=`nkc:${S.sync.token}:${S.sync.gistId}`;if(NATIVE&&NATIVE.copyText)NATIVE.copyText(c);else{try{await navigator.clipboard.writeText(c);}catch(e){prompt('연결 코드',c);}}msg.textContent='연결 코드를 복사했습니다. 다른 기기의 기록 → 붙여넣기에 넣으십시오. 토큰이 들어 있으니 남에게 보내지 마십시오.';});
+
+// ===== 조준 화면(AR): 카메라로 목표를 겨누어 三針 방위를 읽고 坐向·得水·破水·砂를 저장 =====
+// 안드로이드 앱: 웹뷰의 방위 이벤트는 기기마다 오지 않는 경우가 있어, 앱이 SensorManager로 읽어 window.__nakyengHeading(flat, cam, pitch, acc)로 넘긴다
+const NATIVE_COMPASS=!!(NATIVE&&typeof NATIVE.startCompass==='function'&&(typeof NATIVE.hasCompass!=='function'||NATIVE.hasCompass()));
+let nativeUsers=0;
+function nativeCompass(on){if(!NATIVE_COMPASS)return;nativeUsers=Math.max(0,nativeUsers+(on?1:-1));try{if(on&&nativeUsers===1)NATIVE.startCompass();if(!on&&nativeUsers===0)NATIVE.stopCompass();}catch(e){}}
+const ACC_DEG={0:45,1:25,2:12,3:5};   // 안드로이드 센서 정확도 등급 → 대략의 오차
+window.__nakyengHeading=function(flat,cam,pitch,acc){if(flat==null)return;flat=+flat;cam=+cam;pitch=+pitch;acc=+acc;if(!isFinite(flat))return;
+  heading=mod(flat);
+  if(aimOn){const h=(Math.abs(pitch)>25&&isFinite(cam))?mod(cam):mod(flat);aimAcc=ACC_DEG[acc]??null;aimRaw=h;
+    if(!aimFrozen){if(aimHd===null)aimHd=h;else{const d=mod(h-aimHd+180)-180;aimHd=mod(aimHd+d*(Math.abs(d)>20?0.5:0.25));}}}};
+const hasSensors=()=>NATIVE_COMPASS||(('ontouchstart' in window||navigator.maxTouchPoints>0)&&typeof DeviceOrientationEvent!=='undefined');
+let aimOn=false,aimStream=null,aimHd=null,aimRaw=null,aimAcc=null,aimFrozen=false,aimNeedle=3,aimRAF=null,aimKey='';
+window.addEventListener('resize',()=>{aimKey='';});
+const d2r=Math.PI/180;
+// 세워서 겨눌 때: 기기 뒤(카메라, 기기 -z축) 방향을 세계 좌표(x 동, y 북, z 위)로 돌려 방위를 구한다. W3C DeviceOrientation의 Z-X'-Y'' 회전
+function cameraHeading(a,b,g){const cA=Math.cos(a*d2r),sA=Math.sin(a*d2r),cB=Math.cos(b*d2r),sB=Math.sin(b*d2r),cG=Math.cos(g*d2r),sG=Math.sin(g*d2r);
+  const vx=-(cA*sG+cG*sA*sB), vy=-(sA*sG-cA*cG*sB); // R·(0,0,-1)의 동·북 성분
+  if(Math.hypot(vx,vy)<0.2)return null; // 거의 눕힌 상태: 카메라가 땅이나 하늘을 봄
+  return mod(Math.atan2(vx,vy)/d2r);}
+function onOriAim(e){let h=null;
+  if(typeof e.webkitCompassHeading==='number'){h=e.webkitCompassHeading;aimAcc=typeof e.webkitCompassAccuracy==='number'?e.webkitCompassAccuracy:null;}   // iOS: 세워도 카메라 방향
+  else if(e.absolute&&typeof e.alpha==='number'){const b=e.beta||0,g=e.gamma||0;h=(Math.abs(b)<25&&Math.abs(g)<25)?mod(360-e.alpha):cameraHeading(e.alpha,b,g);if(h===null)return;}
+  else return;
+  aimRaw=h; if(aimFrozen)return;
+  if(aimHd===null)aimHd=h; else{const d=mod(h-aimHd+180)-180;aimHd=mod(aimHd+d*(Math.abs(d)>20?0.5:0.25));}}  // 흔들림을 줄이는 완만한 따라가기
+function aimTrue(){return aimHd===null?null:mod(aimHd+(S.declOn?S.decl:0));}
+function aimDraw(){if(!aimOn)return;const h=aimTrue();
+  const g0=curGuk();const key=(h===null?'-':h.toFixed(1))+'|'+aimNeedle+'|'+aimFrozen+'|'+aimAcc+'|'+(g0?g0.n:0);if(key===aimKey){aimRAF=requestAnimationFrame(aimDraw);return;}aimKey=key;   // 0.1° 단위로 바뀔 때만
+  if(h===null){$('aimDeg').textContent='--.-°';$('aimJ').textContent=$('aimI').textContent=$('aimC').textContent='';}
+  else{$('aimDeg').textContent=h.toFixed(1)+'°';$('aimJ').textContent=`${valAt(3,h)} · 分金 ${valAt(6,h)||'空'} · 坐 ${valAt(3,mod(h+180))}`;$('aimI').textContent=`${valAt(12,h)} · ${valAt(13,h)}`;
+    const g=curGuk();$('aimC').textContent=`${valAt(20,h)} · 雙山 ${ssOf(h)}${g?' · '+g.name.replace('十二長生 ','')+' '+(valAt(g.n,h)||''):''}`;}
+  const acc=$('aimAcc');acc.textContent=aimFrozen?'고정됨 · 숫자를 누르면 풀림':(aimAcc!=null&&aimAcc>=0?`±${Math.round(aimAcc)}°`:'');acc.classList.toggle('warn',aimAcc!=null&&aimAcc>15);
+  drawTape(h);aimRAF=requestAnimationFrame(aimDraw);}
+function drawTape(h){const cv=$('aimTape');const dpr=window.devicePixelRatio||1;const W=cv.clientWidth,H=cv.clientHeight;if(!W||!H)return;if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
+  const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);g.fillStyle='rgba(38,16,11,.6)';g.fillRect(0,0,W,H);
+  if(h===null)return;const L=byN(aimNeedle);if(!L)return;const span=90,pxd=W/span;   // 화면 가로 = 90°
+  const big='600 15px "Noto Serif KR",serif';g.textAlign='center';g.textBaseline='middle';
+  for(const [a0,w,t] of L.cells){const d=mod(a0-h+180)-180;if(Math.abs(d)>span/2+w)continue;const x0=W/2+d*pxd,x1=x0+w*pxd;
+    g.strokeStyle='rgba(241,231,207,.9)';g.lineWidth=1;g.beginPath();g.moveTo(x0,H*0.5);g.lineTo(x0,H);g.stroke();
+    if(t){g.font=big;g.fillStyle=Math.abs(d+w/2)<w/2?'#f2d79a':'#f1e7cf';g.fillText(t,(x0+x1)/2,H*0.3);}}
+  g.font='10px sans-serif';for(let k=Math.ceil((h-span/2)/10)*10;k<=h+span/2;k+=10){const x=W/2+(k-h)*pxd;g.strokeStyle='rgba(241,231,207,.5)';g.beginPath();g.moveTo(x,H*0.8);g.lineTo(x,H);g.stroke();g.fillStyle='rgba(241,231,207,.75)';g.fillText(String(mod(k)),x,H*0.66);}
+  g.strokeStyle='#c1341f';g.lineWidth=2;g.beginPath();g.moveTo(W/2,0);g.lineTo(W/2,H);g.stroke();}
+async function openAim(){if(aimOn)return;if(!hasSensors()){msg.textContent='조준 화면은 방위 센서가 있는 폰·패드에서만 됩니다.';return;}
+  aimOn=true;aimHd=null;aimRaw=null;aimAcc=null;aimFrozen=false;aimKey='';aimNeedle=3;$('aim').classList.add('on');$('aimSite').value=S.site||'';$('aimNeedle').value=String(aimNeedle);renderAimGroup();$('aimMsg').textContent='목표를 세로 선에 맞추고 종류 단추를 누르십시오. 철제·자석 근처는 피하고, 값이 흔들리면 기기를 8자로 돌려 보정하십시오.';
+  try{if(NATIVE_COMPASS)nativeCompass(true);
+    else if(typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')throw new Error('센서 사용이 허용되지 않았습니다');window.addEventListener('deviceorientation',onOriAim,true);}
+    else{window.addEventListener('deviceorientationabsolute',onOriAim,true);window.addEventListener('deviceorientation',onOriAim,true);}}
+  catch(e){$('aimMsg').textContent='센서를 켤 수 없습니다: '+e.message;}
+  keepAwake(true);
+  try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('카메라 없음');aimStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});const v=$('aimV');v.srcObject=aimStream;await v.play();}
+  catch(e){$('aimMsg').textContent='카메라를 열지 못했습니다('+(e.message||e.name)+'). 눈금만으로 겨눌 수 있습니다: 기기 뒷면을 목표로 향하게 하십시오.';}
+  setTimeout(()=>{if(aimOn&&aimRaw===null)$('aimMsg').textContent='방위 센서 값이 들어오지 않습니다. 이 기기·브라우저에서는 조준 화면을 쓸 수 없습니다.';},3000);
+  aimDraw();}
+function closeAim(){if(!aimOn)return;aimOn=false;$('aim').classList.remove('on');cancelAnimationFrame(aimRAF);if(NATIVE_COMPASS)nativeCompass(false);window.removeEventListener('deviceorientationabsolute',onOriAim,true);window.removeEventListener('deviceorientation',onOriAim,true);
+  if(aimStream){aimStream.getTracks().forEach(t=>t.stop());aimStream=null;}if(!sensor)keepAwake(false);
+  if(document.body.classList.contains('open')&&curTab==='site')renderSite();}   // 터 화면에서 직접 촬영하고 돌아오면 방위도에 바로 보임
+function kindNote(r,gL){const az=r.az;switch(r.kind){   // gL: 터의 破水로 정한 十二長生 층(없으면 지금 보이는 局)
+  case '得水':{const g=gL===undefined?curGuk():gL;return `縫針 ${valAt(20,az)} · 雙山 ${ssOf(az)}`+(g?` · ${g.name.replace('十二長生 ','')} ${valAt(g.n,az)||''}`:'');}
+  case '破水':{const g=gukOfAz(az);return `縫針 ${valAt(20,az)} · 雙山 ${ssOf(az)} → ${g||'局 없음(旺·生方)'}`;}
+  case '砂':return `中針 ${valAt(12,az)} · ${valAt(13,az)}`;
+  default:return `<b>${valAt(3,r.za)}坐${valAt(3,az)}向</b> · 分金 ${valAt(6,r.za)||'空'}`;}}
+function aimSave(kind){const h=aimTrue();if(h===null){$('aimMsg').textContent='아직 방위를 읽지 못했습니다.';return;}
+  const site=$('aimSite').value.trim();S.site=site;saveS();const now=Date.now();
+  const r={id:rid(),t:now,m:now,dev:devName(),kind,site,az:h,za:mod(h+180),memo:'',decl:S.declOn?S.decl:null,sensor:true,del:false};
+  const done=()=>{REC.push(r);saveRec();aimBatch.push(r.id);renderAimGroup();let note=`${kind} 저장 ${h.toFixed(1)}° · `;
+    if(kind==='坐向'){setAz(h);note+=`${valAt(3,r.za)}坐${valAt(3,h)}向`;}
+    else if(kind==='破水'){const g=gukOfAz(h);const L=g&&LAYERS.find(l=>JG(l)&&l.name.endsWith(g));if(L)setGuk(L.n);note+=kindNote(r);}
+    else{note+=kindNote(r).replace(/<[^>]+>/g,'');if(kind==='得水'&&!curGuk())note+=' · 破水를 먼저 재면 局이 정해집니다';}
+    $('aimMsg').textContent=note;msg.textContent=note;if(document.body.classList.contains('open')){if(curTab==='rec')renderRec();if(curTab==='site')renderSite();}};
+  if(S.gps&&navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>{r.lat=p.coords.latitude;r.lon=p.coords.longitude;r.acc=p.coords.accuracy;done();},()=>done(),{timeout:6000,enableHighAccuracy:true});else done();
+  aimNeedle=KINDS[kind].n;$('aimNeedle').value=String(aimNeedle);}
+$('bAim').addEventListener('click',openAim);$('aimClose').addEventListener('click',closeAim);
+// 터로 묶기: 조준 화면을 연 뒤(앱을 끄기 전까지) 잰 기록 가운데 아직 묶지 않은 것을 한 터로 묶는다
+let aimBatch=[];
+const batchRecs=()=>{const live=new Map(liveRec().map(r=>[r.id,r]));aimBatch=aimBatch.filter(id=>live.has(id));return aimBatch.map(id=>live.get(id));};
+function renderAimGroup(){const n=batchRecs().length;const b=$('aimGroup');b.textContent=n?`터로 묶기 (${n})`:'터로 묶기';b.classList.toggle('on',n>0);}
+$('aimGroup').addEventListener('click',()=>{const rs=batchRecs();
+  if(!rs.length){$('aimMsg').textContent='이번에 잰 기록이 없습니다. 坐向·得水·破水·砂를 잰 뒤 누르십시오.';return;}
+  pickRecords({title:'터로 묶기',intro:'이번에 잰 기록입니다. 잘못 잰 것은 체크를 풀고 묶으십시오.',list:rs.slice().reverse(),checked:true,
+    name:$('aimSite').value.trim()||lastGroup||'',ok:n=>`${n}건 묶기`,
+    onOk:(picked,name)=>{touchRecs(picked,r=>{r.site=name;});const ids=new Set(picked.map(r=>r.id));aimBatch=aimBatch.filter(id=>!ids.has(id));lastGroup=name;stSite=name;renderAimGroup();
+      $('aimMsg').textContent=`터 "${name}"로 ${picked.length}건을 묶었습니다.`;msg.textContent=$('aimMsg').textContent;showGrouped(name);}});});
+$('aimDeg').addEventListener('click',()=>{aimFrozen=!aimFrozen;if(!aimFrozen&&aimRaw!==null)aimHd=aimRaw;});
+$('aimNeedle').addEventListener('change',e=>{aimNeedle=+e.target.value;});
+document.querySelectorAll('#aim button[data-kind]').forEach(b=>b.addEventListener('click',()=>aimSave(b.dataset.kind)));
+if(!hasSensors())$('bAim').style.display='none';
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&aimOn)closeAim();});
+
+
+// ===== 터: 같은 터에서 잰 기록을 묶어 방위도로 보고, 터 단위로 보내며, 盤에 불러온다 =====
+// 터는 기록의 site(터 이름)로 묶는다. 별도 개체를 두지 않으므로 동기화·파일·링크·QR 형식은 그대로이고, 옛 기록도 그대로 묶인다.
+const hEsc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MK={'得水':{c:'#2a7fb8',ch:'得'},'破水':{c:'#8a3fa0',ch:'破'},'砂':{c:'#4f8a3a',ch:'砂'}};   // 방위도·盤 둘레 표시의 색과 글자
+const kIdx=k=>Math.max(0,Object.keys(KINDS).indexOf(k));
+let stSite='';   // 터 탭에서 고른 터
+function siteNames(){const s=new Set(liveRec().map(r=>r.site).filter(Boolean));if(S.site)s.add(S.site);return [...s].sort((a,b)=>a.localeCompare(b,'ko'));}   // 지금 재는 터는 기록이 없어도 보인다
+function siteRecs(name){return liveRec().filter(r=>r.site===name);}
+function siteInfo(name){const rs=siteRecs(name);const of=k=>rs.filter(r=>r.kind===k);const zs=of('坐向'),ps=of('破水');const zv=zs[zs.length-1]||null,pa=ps[ps.length-1]||null;   // 坐向·破水가 여럿이면 최근 것
+  const guk=pa?gukOfAz(pa.az):null;const gL=guk?LAYERS.find(l=>JG(l)&&l.name.endsWith(guk)):null;
+  return {name,rs,zs,zv,ps,pa,guk,gL,ds:of('得水'),ss:of('砂')};}
+function kindShort(r,info){const g=info&&info.gL;switch(r.kind){   // 방위도 요약: 坐向은 正針, 得水·破水는 縫針 雙山(得水는 터의 局에 따른 長生 단계), 砂는 中針
+  case '得水':return ssOf(r.az)+(g&&valAt(g.n,r.az)?' '+valAt(g.n,r.az):'');
+  case '破水':return ssOf(r.az)+(gukOfAz(r.az)?' → '+gukOfAz(r.az):'');
+  case '砂':return valAt(12,r.az);
+  default:return `${valAt(3,r.za)}坐${valAt(3,r.az)}向`;}}
+function touchRecs(list,fn){const now=Date.now(),d=devName();for(const r of list){fn(r);r.m=now;r.dev=d;}saveRec();}   // 고친 기록은 수정 시각을 올려 다른 기기에도 전해지게 한다
+function renderSite(){const names=siteNames();const sel=$('stSel');
+  if(!names.includes(stSite))stSite=names.includes(S.site)?S.site:(names[0]||'');
+  sel.innerHTML=names.map(n=>`<option value="${hEsc(n)}"${n===stSite?' selected':''}>${hEsc(n)} (${siteRecs(n).length})</option>`).join('');sel.style.display=names.length?'':'none';
+  $('stCur').textContent=S.site?`지금 재는 터: ${S.site}`:'';
+  const box=$('stBox');$('siteBar').classList.toggle('on',!!stSite);$('stTop').style.display=stSite?'':'none';if(!stSite){box.style.display='none';$('stEmpty').style.display='';$('bSiteAim').style.display=hasSensors()?'':'none';
+    const loose=liveRec().filter(r=>!r.site).length;$('stLoose').textContent=loose?`터에 묶이지 않은 기록 ${loose}건 · "새 터"를 만들면 골라 넣을 수 있습니다.`:'';return;}
+  box.style.display='';$('stEmpty').style.display='none';
+  const info=siteInfo(stSite);drawSiteMap($('stMap'),info);
+  $('bSiteUp').classList.toggle('on',!!S.siteUp);$('bSiteHere').classList.toggle('on',S.site===stSite);$('bSiteLoad').classList.toggle('on',S.shown===stSite);
+  const line=(k,list)=>list.length?`<div><span class="kd k-${kIdx(k)}">${k}</span>${list.map(r=>`<b>${hEsc(kindShort(r,info))}</b> ${r.az.toFixed(1)}°${r.memo?' '+hEsc(r.memo):''}`).join(' · ')}</div>`:'';
+  $('stSum').innerHTML=(info.zv?line('坐向',[info.zv])+(info.zs.length>1?`<div class="note">坐向 ${info.zs.length}건 가운데 최근 것을 축으로 씁니다.</div>`:''):'<div class="note">坐向 기록이 없어 축을 그리지 못했습니다. 조준이나 기록 탭에서 坐向을 저장하십시오.</div>')
+    +line('得水',info.ds)+line('破水',info.ps)+line('砂',info.ss)+(info.guk?`<div class="note">破水 ${ssOf(info.pa.az)} → 十二長生 ${info.guk}</div>`:'');
+  $('stCount').textContent=info.rs.length?`${info.rs.length}건`:'';const ul=$('stList');ul.innerHTML='';
+  if(!info.rs.length)ul.innerHTML='<li><span class="note">이 터에 기록이 없습니다. 조준이나 기록 탭에서 저장하면 여기에 묶입니다.</span></li>';
+  info.rs.slice().reverse().forEach(r=>{const li=document.createElement('li');
+    li.innerHTML=`<div class="g"><span class="kd k-${kIdx(r.kind)}">${r.kind}</span>${kindNote(r,info.gL)} · ${r.az.toFixed(1)}°${r.memo?' · '+hEsc(r.memo):''}<small>${fmtT(r.t)}${r.dev?' · '+hEsc(r.dev):''}</small></div><button class="sm">불러오기</button><button class="sm">빼기</button>`;
+    const [bl,bo]=li.querySelectorAll('button');bl.addEventListener('click',()=>{if(sensor)stopSensor();setAz(r.az);openTab('read',true);});
+    bo.addEventListener('click',()=>{const name=stSite;touchRecs([r],x=>{x.site='';});renderSite();msg.textContent=`기록을 터 "${name}"에서 뺐습니다. 기록 자체는 남아 있습니다.`;});ul.appendChild(li);});}
+// 방위도: 북이 위(向 위로를 켜면 向이 위). 24山(正針) 고리 안에 坐向 축을 긋고 得水·破水·砂를 둘레에 찍는다
+const SITE_RINGS=[{n:3,t:'正針',c:'#f4c761',k:'坐向'},{n:12,t:'中針',c:'#b3da9f',k:'砂'},{n:20,t:'縫針',c:'#adcdf0',k:'得水·破水'}];   // 방위도의 24山 세 고리(안→밖). 색은 盤의 24山 층(三盤 색을 진하게 한 것)과 같고, k는 그 針으로 읽는 기록 종류(KINDS)
+function drawSiteMap(svg,info){svg.innerHTML='';const RR=150,RW=16,RI=RR-SITE_RINGS.length*RW,up=S.siteUp&&info.zv?info.zv.az:0;   // RI: 맨 안쪽 고리(正針)의 안쪽 반지름
+  const root=el('g',{transform:`rotate(${-up})`});svg.appendChild(root);const upright=(x,y)=>`translate(${x} ${y}) rotate(${up})`;   // 글자는 돌려도 바로 서게
+  root.appendChild(el('circle',{r:RR+4,fill:'#b99552'}));root.appendChild(el('circle',{r:RR,fill:'#f1e7cf',stroke:'#231c18','stroke-width':1.2}));
+  SITE_RINGS.forEach(({n,c},i)=>{const r0=RI+i*RW,r1=r0+RW,ring=el('g',{class:'ring','data-n':n});root.appendChild(ring);   // 안쪽부터 正針·中針·縫針 (盤과 같은 차례)
+    ring.appendChild(el('circle',{r:(r0+r1)/2,fill:'none',stroke:c,'stroke-width':RW}));
+    ring.appendChild(el('circle',{r:r0,fill:'none',stroke:'#231c18','stroke-width':.8}));
+    for(const [a0,w,t] of byN(n).cells){const [x0,y0]=pol(r0,a0),[x1,y1]=pol(r1,a0);ring.appendChild(el('line',{x1:x0,y1:y0,x2:x1,y2:y1,stroke:'#231c18','stroke-width':.6}));
+      const tx=el('text',{transform:`rotate(${a0+w/2}) translate(0 ${-(r0+RW/2)})`,'text-anchor':'middle','dominant-baseline':'central','font-size':11,'font-weight':['子','午','卯','酉'].includes(t)?'600':'400',style:'fill:#231c18'});tx.textContent=t;ring.appendChild(tx);}});
+  const lg=el('g',{class:'lg'});svg.appendChild(lg);   // 범례: 盤과 함께 돌지 않게 root 밖, 왼쪽 아래 구석
+  SITE_RINGS.forEach(({t:nm,c,k},i)=>{const y=133+i*15;lg.appendChild(el('rect',{x:-168,y:y-5.5,width:11,height:11,rx:2,fill:c,stroke:'#231c18','stroke-width':.5}));
+    const t=el('text',{x:-153,y,'dominant-baseline':'central','font-size':10.5,style:'fill:#3b2a20'});t.textContent=`${nm} ${k}`;lg.appendChild(t);});
+  const nT=el('text',{transform:upright(0,-(RR+13)),'text-anchor':'middle','dominant-baseline':'central','font-size':10,'font-weight':600,style:'fill:#b99552'});nT.textContent='N';root.appendChild(nT);
+  const pill=(a,rad,txt,c,fs=11.5)=>{const [x,y]=pol(rad,a);const g=el('g',{transform:upright(x,y)});const w=[...txt].length*fs*0.95+10;g.appendChild(el('rect',{x:-w/2,y:-9,width:w,height:18,rx:9,fill:c}));
+    const t=el('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':fs,'font-weight':600,style:'fill:#fff'});t.textContent=txt;g.appendChild(t);root.appendChild(g);return g;};
+  const marks=[...info.ds,...info.ps,...info.ss];
+  for(const r of marks){const [x,y]=pol(RI-12,r.az);root.appendChild(el('line',{x1:0,y1:0,x2:x,y2:y,stroke:MK[r.kind].c,'stroke-width':1,'stroke-dasharray':'3 3',opacity:.8}));}
+  if(info.zv){const az=info.zv.az,za=info.zv.za;const [vx,vy]=pol(RI-8,az),[zx,zy]=pol(RI-8,za);
+    root.appendChild(el('line',{class:'axis',x1:0,y1:0,x2:zx,y2:zy,stroke:'#1f5fbf','stroke-width':2.4}));root.appendChild(el('line',{class:'axis',x1:0,y1:0,x2:vx,y2:vy,stroke:'#c1341f','stroke-width':2.4}));
+    const p1=pol(RI-22,az+3.5),p2=pol(RI-22,az-3.5);root.appendChild(el('polygon',{points:`${vx},${vy} ${p1[0]},${p1[1]} ${p2[0]},${p2[1]}`,fill:'#c1341f'}));}
+  root.appendChild(el('circle',{r:4,fill:'#b99552',stroke:'#231c18','stroke-width':.8}));
+  for(const r of marks){const m=MK[r.kind];const [x,y]=pol(RI-12,r.az),[lx,ly]=pol(RI-32,r.az);const g=el('g',{class:'mk','data-kind':r.kind});
+    g.appendChild(el('circle',{cx:x,cy:y,r:9,fill:m.c,stroke:'#fff','stroke-width':1.2}));
+    const t=el('text',{transform:upright(x,y),'text-anchor':'middle','dominant-baseline':'central','font-size':11,'font-weight':600,style:'fill:#fff'});t.textContent=m.ch;g.appendChild(t);
+    const v=el('text',{transform:upright(lx,ly),'text-anchor':'middle','dominant-baseline':'central','font-size':10,style:`fill:${m.c}`});v.textContent=kindShort(r,info).split(' ')[0];g.appendChild(v);
+    const ti=el('title',{});ti.textContent=`${r.kind} ${r.az.toFixed(1)}° · ${kindShort(r,info)}${r.memo?' · '+r.memo:''}`;g.appendChild(ti);root.appendChild(g);}
+  if(info.zv){pill(info.zv.az,RI-38,'向 '+valAt(3,info.zv.az),'#c1341f').classList.add('axis-lab');pill(info.zv.za,RI-38,'坐 '+valAt(3,info.zv.za),'#1f5fbf').classList.add('axis-lab');}}
+// 盤에 불러온 터: 得水·破水·砂를 盤 둘레에, 坐·向 방위를 작은 세모로 표시. 盤과 함께 돈다
+function drawSiteMarks(){if(!siteG)return;siteG.innerHTML='';const chip=$('siteChip');const name=S.shown;const info=name?siteInfo(name):null;
+  if(!info||!info.rs.length){chip.classList.remove('on');return;}
+  chip.classList.add('on');chip.querySelector('span').textContent=`터 ${name}`+(info.zv?` · ${valAt(3,info.zv.za)}坐${valAt(3,info.zv.az)}向`:'');
+  if(info.zv)for(const [a,c] of [[info.zv.az,'#c1341f'],[info.zv.za,'#1f5fbf']]){const p0=pol(R+3,a),p1=pol(R+32,a+2.2),p2=pol(R+32,a-2.2);siteG.appendChild(el('polygon',{points:`${p0[0]},${p0[1]} ${p1[0]},${p1[1]} ${p2[0]},${p2[1]}`,fill:c,stroke:'#f1e7cf','stroke-width':1.5}));}
+  for(const r of [...info.ds,...info.ps,...info.ss]){const m=MK[r.kind];const g=el('g',{class:'smk','data-kind':r.kind,transform:`rotate(${r.az})`});   // 盤 테두리(R+40이 viewBox 끝) 위에 얹는다
+    g.appendChild(el('circle',{cy:-(R+22),r:17,fill:m.c,stroke:'#f1e7cf','stroke-width':2}));
+    const t=el('text',{y:-(R+22),'text-anchor':'middle','dominant-baseline':'central','font-size':21,'font-weight':600,style:'fill:#fff'});t.textContent=m.ch;g.appendChild(t);
+    const ti=el('title',{});ti.textContent=`${r.kind} ${r.az.toFixed(1)}° · ${kindShort(r,info)}`;g.appendChild(ti);siteG.appendChild(g);}}
+function loadSite(name){const info=siteInfo(name);if(!info.rs.length){msg.textContent='이 터에는 기록이 없습니다.';return;}
+  if(info.zv){if(sensor)stopSensor();setAz(info.zv.az);}
+  if(info.gL)setGuk(info.gL.n);
+  S.shown=name;saveS();drawSiteMarks();hlCell.setAttribute('d','');
+  msg.textContent=`터 "${name}"를 盤에 불러왔습니다. `+(info.zv?`${valAt(3,info.zv.za)}坐${valAt(3,info.zv.az)}向(${info.zv.az.toFixed(1)}°)으로 돌렸고, `:'坐向 기록이 없어 盤은 그대로 두고, ')+`得水 ${info.ds.length}·破水 ${info.ps.length}·砂 ${info.ss.length}건을 盤 둘레에 표시했습니다.`+(info.guk?` 十二長生은 ${info.guk}.`:'')+' 둘레의 표시를 짚으면 값이 보입니다.';
+  closeDrawer();}
+function askText(title,label,init,fn){const body=document.createElement('div');body.innerHTML=`<div class="row"><input type="text" id="askIn" style="flex:1" placeholder="${hEsc(label)}"></div>`;const inp=body.querySelector('#askIn');inp.value=init||'';
+  const ok=()=>{const v=inp.value.trim();if(!v){inp.focus();return;}closeModal();fn(v);};inp.addEventListener('keydown',e=>{if(e.key==='Enter')ok();});
+  showModal(title,body,[{label:'확인',cls:'on',fn:ok},{label:'취소',fn:closeModal}]);setTimeout(()=>inp.focus(),50);}
+$('stSel').addEventListener('change',e=>{stSite=e.target.value;renderSite();});
+$('bSiteNew').addEventListener('click',()=>askText('새 터','터 이름 (예: 선영, 새집 터)','',name=>{S.site=name;saveS();stSite=name;renderSite();
+  msg.textContent=`새 터 "${name}"를 만들었습니다. 지금부터 조준·기록 저장이 이 터에 묶입니다.`;
+  if(liveRec().some(r=>r.site!==name))addToSite();}));
+$('bSiteAim').addEventListener('click',()=>{closeDrawer();openAim();});
+$('bSiteHere').addEventListener('click',()=>{S.site=stSite;saveS();renderSite();
+  msg.textContent=`지금부터 저장하는 기록은 터 "${stSite}"에 묶입니다. 조준이나 기록 탭의 "현재 방위 저장"을 쓰십시오.`;});
+$('bSiteShoot').addEventListener('click',()=>{if(!hasSensors()){msg.textContent='직접 촬영(조준)은 방위 센서·카메라가 있는 폰·패드에서만 됩니다. 이 기기에서는 "기록에서 이 터에 넣기"를 쓰십시오.';return;}
+  S.site=stSite;saveS();renderSite();openAim();});   // 조준의 터 이름 칸이 이 터로 채워져, 잰 값이 바로 이 터에 들어간다
+$('bSiteLoad').addEventListener('click',()=>loadSite(stSite));
+$('bSiteUp').addEventListener('click',()=>{S.siteUp=!S.siteUp;saveS();renderSite();});
+$('bSiteRename').addEventListener('click',()=>askText('터 이름 바꾸기','새 이름',stSite,name=>{if(name===stSite)return;const old=stSite;const rs=REC.filter(r=>r.site===old);   // 지움 표시도 같이 옮겨 삭제 전파가 끊기지 않게
+  touchRecs(rs,r=>{r.site=name;});if(S.site===old)S.site=name;if(S.shown===old)S.shown=name;saveS();stSite=name;renderSite();drawSiteMarks();msg.textContent=`터 "${old}"를 "${name}"로 바꿨습니다 (${rs.filter(r=>!r.del).length}건).`;}));
+function addToSite(){const name=stSite;const others=liveRec().filter(r=>r.site!==name);if(!others.length){msg.textContent='넣을 수 있는 다른 기록이 없습니다.';return;}
+  pickRecords({title:`터 "${name}"에 기록 넣기`,intro:'넣을 기록을 모두 체크한 뒤 한 번에 넣으십시오. 줄 어디를 눌러도 체크됩니다.',list:others.slice().reverse(),checked:false,looseFirst:true,ok:n=>`${n}건 넣기`,
+    onOk:picked=>{touchRecs(picked,r=>{r.site=name;});renderSite();msg.textContent=`기록 ${picked.length}건을 터 "${name}"에 넣었습니다.`;}});}
+$('bSiteAdd').addEventListener('click',addToSite);
+let lastGroup='';
+// 기록 고르기 창. list: 고를 기록, checked: 처음에 모두 체크, name: 터 이름 칸을 보일 때 처음 값(undefined면 칸 없음), looseFirst: 터 없는 기록만 먼저 보이고 "다른 터 기록도"로 펼침
+function pickRecords(o){const body=document.createElement('div');const withName=o.name!==undefined;
+  const loose=o.list.filter(r=>!r.site);let showAll=!o.looseFirst||!loose.length||loose.length===o.list.length;
+  body.innerHTML=`<p class="note">${o.intro||''}</p>`+(withName?`<div class="row"><input type="text" id="pkName" placeholder="터 이름 (예: 선영)" style="flex:1"></div><div class="chips" id="pkChips"></div>`:'')+
+    `<div class="pk-top"><button class="sm" id="pkAll">모두 고르기</button>${showAll?'':`<label class="chk"><input type="checkbox" id="pkMore">다른 터 기록도 (${o.list.length-loose.length})</label>`}<span class="n" id="pkN"></span></div><ul class="pick" id="pickList"></ul>`;
+  const ul=body.querySelector('#pickList'),sel=new Set(o.checked?o.list.map(r=>r.id):[]);let okBtn=null;
+  const info=r=>{const t=kindShort(r,null);return `<span class="kd k-${kIdx(r.kind)}">${r.kind}</span><b>${hEsc(t)}</b> ${r.az.toFixed(1)}°${r.memo?' · '+hEsc(r.memo):''}<small>${r.site?'터 '+hEsc(r.site):'터 없음'} · ${fmtT(r.t)}${r.dev?' · '+hEsc(r.dev):''}</small>`;};
+  const shown=()=>showAll?o.list:loose;
+  const count=()=>{const n=o.list.filter(r=>sel.has(r.id)).length;body.querySelector('#pkN').textContent=n?`${n}건 고름`:'';if(okBtn){okBtn.textContent=o.ok(n);okBtn.disabled=!n;}
+    const vis=shown();body.querySelector('#pkAll').textContent=vis.length&&vis.every(r=>sel.has(r.id))?'모두 풀기':'모두 고르기';};
+  const draw=()=>{ul.innerHTML='';for(const r of shown()){const li=document.createElement('li');li.className=sel.has(r.id)?'sel':'';li.dataset.id=r.id;
+      li.innerHTML=`<input type="checkbox"${sel.has(r.id)?' checked':''}><div class="t">${info(r)}</div>`;const cb=li.querySelector('input');
+      const set=v=>{if(v)sel.add(r.id);else sel.delete(r.id);cb.checked=v;li.classList.toggle('sel',v);count();};
+      li.addEventListener('click',e=>{if(e.target!==cb)set(!sel.has(r.id));});cb.addEventListener('change',()=>set(cb.checked));ul.appendChild(li);}count();};
+  body.querySelector('#pkAll').addEventListener('click',()=>{const vis=shown();const all=vis.every(r=>sel.has(r.id));for(const r of vis){if(all)sel.delete(r.id);else sel.add(r.id);}draw();});
+  const more=body.querySelector('#pkMore');if(more)more.addEventListener('change',()=>{showAll=more.checked;if(!showAll)for(const r of o.list)if(r.site)sel.delete(r.id);draw();});
+  let nameIn=null;if(withName){nameIn=body.querySelector('#pkName');nameIn.value=o.name||'';const chips=body.querySelector('#pkChips');
+    for(const n of siteNames().slice(0,8)){const c=document.createElement('button');c.className='sm';c.textContent=n;c.addEventListener('click',()=>{nameIn.value=n;});chips.appendChild(c);}
+    if(!chips.children.length)chips.remove();}
+  const ok=()=>{const picked=o.list.filter(r=>sel.has(r.id));if(!picked.length)return;let name;
+    if(withName){name=nameIn.value.trim();if(!name){nameIn.focus();nameIn.placeholder='터 이름을 넣으십시오';return;}}closeModal();o.onOk(picked,name);};
+  showModal(o.title,body,[{label:o.ok(0),cls:'on',fn:ok},{label:'취소',fn:closeModal}]);okBtn=$('modal').querySelector('.mf button.on');draw();
+  if(withName&&!nameIn.value)setTimeout(()=>nameIn.focus(),50);}
+// 묶은 뒤: 방위도를 바로 보여 주고 盤·터 화면으로 이어 준다
+function showGrouped(name){const info=siteInfo(name);const body=document.createElement('div');
+  const cnt=k=>info.rs.filter(r=>r.kind===k).length;
+  body.innerHTML=`<svg id="groupMap" viewBox="-170 -170 340 340" xmlns="http://www.w3.org/2000/svg"></svg><p class="note" style="text-align:center">${info.zv?`<b>${valAt(3,info.zv.za)}坐${valAt(3,info.zv.az)}向</b> · `:'坐向 없음 · '}得水 ${cnt('得水')} · 破水 ${cnt('破水')} · 砂 ${cnt('砂')}${info.guk?' · '+info.guk:''}</p>`;
+  drawSiteMap(body.querySelector('#groupMap'),info);
+  showModal(`터 "${name}"`,body,[{label:'盤에서 보기',cls:'on',fn:()=>{closeModal();closeAim();loadSite(name);}},{label:'터 화면',fn:()=>{closeModal();closeAim();stSite=name;openTab('site',true);}},{label:'계속 재기',fn:closeModal}]);}
+// 터 하나만 보내기. 지움 표시도 함께 보내 받는 쪽에 삭제가 전해지게 한다
+function siteFile(name){return 'nakyeng-'+String(name).replace(/[\\/:*?"<>|\s]+/g,'_')+'-'+new Date().toISOString().slice(0,10);}
+const siteAll=()=>REC.filter(r=>r.site===stSite);
+$('bSiteShare').addEventListener('click',()=>shareRecords(siteAll(),siteFile(stSite)+'.json','나경 터 '+stSite,stSite));
+$('bSiteExport').addEventListener('click',()=>offerFile(siteFile(stSite)+'.json',JSON.stringify(exportObj(siteAll(),stSite),null,1)));
+$('bSiteLink').addEventListener('click',()=>copyRecordsLink(siteAll(),`터 "${stSite}"`));
+$('bSiteQr').addEventListener('click',()=>showRecordsQr(siteAll(),`터 "${stSite}" QR`));
+$('bSitePng').addEventListener('click',()=>siteMapPng(stSite));
+// 방위도 PNG: 그려 둔 SVG(색은 모두 속성에 있음)를 흰 바탕 그림에 옮기고 아래에 터 이름·坐向을 적는다
+async function siteMapPng(name){const info=siteInfo(name);if(!info.rs.length){msg.textContent='이 터에 기록이 없습니다.';return;}
+  const svg=$('stMap').cloneNode(true);svg.setAttribute('width',340);svg.setAttribute('height',340);svg.setAttribute('font-family','"Noto Serif KR","Nanum Myeongjo","Apple SD Gothic Neo",serif');
+  svg.querySelectorAll('title').forEach(t=>t.remove());
+  const url='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));
+  const img=new Image();try{await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src=url;});}catch(e){msg.textContent='그림을 만들지 못했습니다.';return;}
+  const k=3,W=380,H=430,cv=document.createElement('canvas');cv.width=W*k;cv.height=H*k;const g=cv.getContext('2d');g.scale(k,k);
+  g.fillStyle='#f6eedb';g.fillRect(0,0,W,H);g.drawImage(img,20,14,340,340);
+  g.fillStyle='#231c18';g.textAlign='center';g.font='600 17px "Noto Serif KR",serif';g.fillText('터 '+name+(info.zv?` · ${valAt(3,info.zv.za)}坐${valAt(3,info.zv.az)}向 ${info.zv.az.toFixed(1)}°`:''),W/2,382);
+  g.font='12px "Noto Serif KR",serif';g.globalAlpha=.7;g.fillText(`得水 ${info.ds.length} · 破水 ${info.ps.length} · 砂 ${info.ss.length}`+(info.guk?` · ${info.guk}`:'')+' · '+fmtT(Date.now()),W/2,404);g.globalAlpha=1;
+  const fname=siteFile(name)+'.png',b64=cv.toDataURL('image/png');
+  if(NATIVE&&NATIVE.saveBase64){const r=NATIVE.saveBase64(fname,b64.split(',')[1],'image/png');msg.textContent=r?('저장했습니다: '+r):'저장하지 못했습니다.';return;}
+  const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+  try{if(!NATIVE&&navigator.canShare){const f=new File([blob],fname,{type:'image/png'});if(navigator.canShare({files:[f]})&&matchMedia('(pointer:coarse)').matches){await navigator.share({files:[f],title:'나경 터 '+name});msg.textContent='방위도를 보냈습니다.';return;}}}
+  catch(e){if(e&&e.name==='AbortError')return;}
+  if(NATIVE){const body=document.createElement('div');body.innerHTML=`<img src="${b64}" style="width:100%;display:block;border-radius:8px" alt=""><p class="note">그림을 길게 눌러 저장하십시오.</p>`;showModal('방위도 PNG',body,[{label:'닫기',fn:closeModal}]);return;}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);msg.textContent='방위도를 PNG로 저장했습니다: '+fname;}
+$('bSiteCsv').addEventListener('click',()=>{const rs=siteRecs(stSite);if(!rs.length){msg.textContent='이 터에 기록이 없습니다.';return;}offerFile(siteFile(stSite)+'.csv',csvText(rs));});
+$('siteChip').querySelector('button').addEventListener('click',()=>{S.shown='';saveS();drawSiteMarks();msg.textContent='盤의 터 표시를 지웠습니다.';});
+
+// ===== 새 버전 확인·자동 업데이트 =====
+// 웹·설치형 웹앱: 서비스 워커가 새 파일을 받으면 새로고침을 권한다. 앱(안드로이드·데스크톱·웹): 하루 한 번 GitHub 릴리스를 확인해 안내한다.
+// 데스크톱(Windows·Linux AppImage)은 앱 자체가 electron-updater로 내려받아 다시 시작할 때 설치한다.
+function platformKind(){const u=navigator.userAgent;if(NATIVE)return 'android';if(/Electron/.test(u))return /Windows/.test(u)?'win':/Mac/.test(u)?'mac':'linux';if(/iPad|iPhone/.test(u)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))return 'ios';return 'web';}
+function semverGt(a,b){const P=x=>String(x||'').replace(/^v/,'').split('.').map(n=>parseInt(n,10)||0);const pa=P(a),pb=P(b);for(let i=0;i<3;i++){if((pa[i]||0)!==(pb[i]||0))return (pa[i]||0)>(pb[i]||0);}return false;}
+function assetFor(assets,kind){const f=re=>(assets||[]).find(a=>re.test(a.name));return kind==='android'?f(/android\.apk$/):kind==='win'?f(/windows-setup\.exe$/):kind==='mac'?f(/mac-universal\.dmg$/):kind==='linux'?f(/\.AppImage$/):null;}
+let updInfo=null;
+// 안드로이드 앱의 자가 업데이트(앱 0.7.6부터): 확인·받기·설치는 앱(NATIVE.upd*)이 하고, 페이지는 앱이 알려 주는 상태를 아래 띠와 설정의 버전 줄에 보인다
+const NATIVE_UPD=!!(NATIVE&&typeof NATIVE.updCheck==='function');
+let updState=null;   // 앱이 알려 준 마지막 상태 {s: checking|latest|available|downloading|ready|permission|installing|error, v, p(%), silent, m, manual}
+let updHid='';       // 사용자가 닫기·나중에로 내린 띠(상태+버전): 앱이 저절로 다시 알려도 띠를 다시 띄우지 않음(직접 확인하면 다시 보임)
+window.__nakyengUpdate=o=>{updState=o=o||{};const bar=$('updBar'),v=o.v?`<b>${hEsc(o.v)}</b>`:'',btn=(id,t)=>`<button class="sm" id="${id}">${t}</button>`;
+  updInfo=o.v&&!['latest','checking','error'].includes(o.s)?{v:o.v,kind:'android',url:RELEASE_PAGE}:updInfo;
+  if(o.s==='latest'){updInfo=null;S.updChecked=Date.now();saveS();}
+  // 안내문은 <span> 한 덩어리로(띠가 flex라 <b>가 따로 줄을 차지하지 않게), 단추는 따로
+  const [t,b]=o.s==='available'?[`새 버전 ${v} (지금 ${APP_VERSION})`,btn('updGo','받아서 설치')+btn('updX','닫기')]
+    :o.s==='downloading'?[`새 버전 ${v} 내려받는 중… ${o.p>=0?o.p+'%':''}`,'']
+    :o.s==='ready'?(o.silent?[`새 버전 ${v} 준비됨 · 앱을 닫거나 다른 앱으로 넘어가면 자동으로 설치됩니다`,btn('updGo','지금 설치')+btn('updX','닫기')]
+      :[`새 버전 ${v} 준비됨 · 설치하면 앱이 잠시 닫힙니다`,btn('updGo','설치')+btn('updX','나중에')])
+    :o.s==='permission'?[`새 버전 ${v} 설치: 다음 화면에서 "이 출처 허용"을 켠 뒤 돌아오십시오.`,'']
+    :o.s==='installing'?[`새 버전 ${v} 설치 중…`,'']:['',''];
+  const key=o.s+(o.v||'');
+  if(t&&(o.manual||updHid!==key)){bar.innerHTML=`<span>${t}</span>${b}`;bar.classList.add('on');const g=bar.querySelector('#updGo'),x=bar.querySelector('#updX');if(g)g.addEventListener('click',()=>NATIVE.updInstall());if(x)x.addEventListener('click',()=>{updHid=key;bar.classList.remove('on');});}
+  else if(!t&&o.s!=='checking')bar.classList.remove('on');
+  if(o.s!=='checking'&&msg.textContent==='새 버전을 확인합니다…')msg.textContent=t?'새 버전이 있습니다. 아래 띠를 보십시오.':'';   // 직접 확인한 결과
+  if(o.manual&&o.s==='latest')msg.textContent=`최신 버전입니다 (${APP_VERSION}).`;
+  if(o.m&&(o.manual||o.v))msg.textContent='업데이트: '+o.m;
+  renderUpdRow();};
+async function checkUpdate(manual){if(NATIVE_UPD){if(manual)msg.textContent='새 버전을 확인합니다…';NATIVE.updCheck(!!manual);return;}
+  if(!navigator.onLine){if(manual)msg.textContent='오프라인이라 새 버전을 확인할 수 없습니다.';return;}
+  try{const r=await fetch(RELEASE_API,{headers:{Accept:'application/vnd.github+json'}});if(!r.ok)throw new Error('GitHub '+r.status);const j=await r.json();const v=String(j.tag_name||'').replace(/^v/,'');S.updChecked=Date.now();saveS();
+    if(semverGt(v,APP_VERSION)){const kind=platformKind();const a=assetFor(j.assets,kind);updInfo={v,kind,url:a?a.browser_download_url:(j.html_url||RELEASE_PAGE)};showUpdate();}
+    else{updInfo=null;if(manual)msg.textContent=`최신 버전입니다 (${APP_VERSION}).`;}
+    renderUpdRow();}
+  catch(e){if(manual)msg.textContent='새 버전 확인 실패: '+e.message;}}
+function showUpdate(){if(!updInfo)return;const k=updInfo.kind,webish=k==='ios'||k==='web';
+  const how=webish?'새로고침하면 적용됩니다':k==='win'||k==='linux'?'앱을 다시 시작하면 자동으로 설치됩니다. 바로 받으려면 "받기"':'받아서 설치하십시오';
+  const bar=$('updBar');bar.innerHTML=`새 버전 <b>${updInfo.v}</b> (지금 ${APP_VERSION}) · ${how} <button class="sm" id="updGo">${webish?'새로고침':'받기'}</button><button class="sm" id="updX">닫기</button>`;bar.classList.add('on');
+  bar.querySelector('#updGo').addEventListener('click',()=>{if(webish)location.reload();else openExternal(updInfo.url);});bar.querySelector('#updX').addEventListener('click',()=>bar.classList.remove('on'));}
+function renderUpdRow(){const e=$('verRow');if(!e)return;e.textContent=`버전 ${APP_VERSION}`+(updInfo?` · 새 버전 ${updInfo.v} `+({downloading:'받는 중',ready:'준비됨',installing:'설치 중'}[updState&&updState.s]||'있음'):S.updChecked?` · 마지막 확인 ${fmtT(S.updChecked)}`:'');}
+$('bUpd').addEventListener('click',()=>checkUpdate(true));
+$('relLink').addEventListener('click',e=>{e.preventDefault();openExternal(RELEASE_PAGE);});
+function watchSw(reg){const note=()=>{const bar=$('updBar');bar.innerHTML='새 버전을 받았습니다. <button class="sm" id="updGo">새로고침</button>';bar.classList.add('on');bar.querySelector('#updGo').addEventListener('click',()=>location.reload());};
+  if(reg.waiting&&navigator.serviceWorker.controller)note();
+  reg.addEventListener('updatefound',()=>{const w=reg.installing;if(!w)return;w.addEventListener('statechange',()=>{if((w.state==='installed'||w.state==='activated')&&navigator.serviceWorker.controller)note();});});
+  setInterval(()=>reg.update().catch(()=>{}),60*60*1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)reg.update().catch(()=>{});});}
+// ---- 작은 창(모달) ----
+function showModal(title,body,buttons){const m=$('modal');m.querySelector('.mt').textContent=title;const mb=m.querySelector('.mb');mb.innerHTML='';mb.appendChild(body);
+  const mf=m.querySelector('.mf');mf.innerHTML='';for(const b of buttons||[]){const el=document.createElement('button');el.className='sm '+(b.cls||'');el.textContent=b.label;el.addEventListener('click',b.fn);mf.appendChild(el);}
+  m.classList.add('on');}
+function closeModal(){$('modal').classList.remove('on');}
+$('modal').addEventListener('click',e=>{if(e.target===$('modal')){stopScan();closeModal();}});
+// 설정
+function renderSet(){renderSyncSet();renderUpdRow();if(NATIVE_UPD){$('autoUpdRow').style.display='';$('cAutoUpd').checked=!!NATIVE.updGetAuto();}$('cDecl').checked=S.declOn;$('declIn').value=S.decl;$('gapSan').value=S.gapSan;$('gapBun').value=S.gapBun;$('cWake').checked=S.wake;$('cAutoCompass').checked=S.autoCompass!==false;
+  const d=$('kongLayers'); d.innerHTML='<span class="note">空亡 검사 층:</span> ';
+  for(const n of [3,6,12,20,22]){const L=byN(n); if(!L)continue; const lb=document.createElement('label'); lb.className='chk'; lb.style.display='inline-flex'; lb.style.marginRight='8px';
+    lb.innerHTML=`<input type="checkbox" ${S.kongL.includes(n)?'checked':''}> ${L.name}`;
+    lb.querySelector('input').addEventListener('change',e=>{S.kongL=S.kongL.filter(x=>x!==n);if(e.target.checked)S.kongL.push(n);saveS();apply();});d.appendChild(lb);}
+}
+$('cDecl').addEventListener('change',e=>{S.declOn=e.target.checked;saveS();});
+$('declIn').addEventListener('change',e=>{S.decl=+e.target.value||0;saveS();});
+$('gapSan').addEventListener('change',e=>{S.gapSan=Math.max(0,+e.target.value||0);saveS();apply();});
+$('gapBun').addEventListener('change',e=>{S.gapBun=Math.max(0,+e.target.value||0);saveS();apply();});
+$('cWake').addEventListener('change',e=>{S.wake=e.target.checked;saveS();keepAwake(sensor&&S.wake);});
+$('cAutoUpd').addEventListener('change',e=>{if(!NATIVE_UPD)return;NATIVE.updSetAuto(e.target.checked);msg.textContent=e.target.checked?'새 버전이 나오면 앱이 스스로 받아 둡니다. Android 12 이상은 앱을 닫거나 다른 앱으로 넘어갈 때 설치하고(처음 한 번은 "이 출처 허용"이 필요), 그보다 낮은 판은 아래 띠의 "설치"를 누르면 설치됩니다.':'자동 업데이트를 껐습니다. 새 버전이 나오면 알리기만 합니다.';});
+$('cAutoCompass').addEventListener('change',e=>{S.autoCompass=e.target.checked;saveS();msg.textContent=S.autoCompass?'다음에 앱을 열면 센서 값이 들어오는 대로 나침반이 켜집니다.':'앱을 열어도 나침반을 자동으로 켜지 않습니다. 나침반 단추로 켭니다.';});
+$('bClearStore').addEventListener('click',()=>{if(!armed($('bClearStore'),'정말 모두 지우기'))return;try{['nagyeong','nagyeong.set','nagyeong.rec'].forEach(k=>localStorage.removeItem(k));}catch(e){}location.hash='';location.reload();});
+// ---- 포인터 ----
+const ptrs=new Map(); let start=null, moved=0, spaceDown=false;
+function svgPt(e){const r=stage.getBoundingClientRect();const s=2*VB/Math.min(r.width,r.height);
+  return [(e.clientX-r.left-r.width/2)*s,(e.clientY-r.top-r.height/2)*s];}
+stage.addEventListener('pointerdown',e=>{if(e.target.closest&&e.target.closest('#siteChip'))return;   // 터 칩은 盤 조작에서 뺀다(포인터를 잡으면 단추 click이 죽음)
+  stage.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,svgPt(e));moved=0;
+  if(ptrs.size===1){const [x,y]=svgPt(e);start={x,y,rot,px,py,ang:Math.atan2(y-py,x-px),pan:(e.pointerType==='mouse'&&(e.button===2||spaceDown))};if(start.pan)stage.style.cursor='grabbing';}
+  if(ptrs.size===2){const [a,b]=[...ptrs.values()];start={d:Math.hypot(a[0]-b[0],a[1]-b[1]),zoom,px,py,cx:(a[0]+b[0])/2,cy:(a[1]+b[1])/2};}
+});
+stage.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;const p=svgPt(e);ptrs.set(e.pointerId,p);
+  if(ptrs.size===1&&start){moved+=1;
+    if(sensor||locked||start.pan||axis!=='free'){let dx=p[0]-start.x, dy=p[1]-start.y;
+      let ax=axis; if(ax==='free'&&(e.ctrlKey||e.shiftKey)) ax=Math.abs(dx)>=Math.abs(dy)?'h':'v';  // Ctrl(또는 Shift): 큰 쪽 축으로 맞춤
+      if(ax==='h')dy=0; else if(ax==='v')dx=0;
+      px=start.px+dx;py=start.py+dy;}
+    else{const a=Math.atan2(p[1]-start.py,p[0]-start.px);rot=start.rot+(a-start.ang)*180/Math.PI;}
+    scheduleApply();}
+  else if(ptrs.size===2&&start){const [a,b]=[...ptrs.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);
+    zoom=Math.min(6,Math.max(1,start.zoom*d/start.d));const cx=(a[0]+b[0])/2,cy=(a[1]+b[1])/2;
+    px=cx-(start.cx-start.px)*zoom/start.zoom;py=cy-(start.cy-start.py)*zoom/start.zoom;
+    $('zoom').value=zoom;scheduleApply();}
+});
+function up(e){if(ptrs.size===1&&moved<3&&!(start&&start.pan)){tap(ptrs.get(e.pointerId));}ptrs.delete(e.pointerId);start=null;stage.style.cursor=spaceDown?'grab':'';save();}
+stage.addEventListener('pointerup',up);stage.addEventListener('pointercancel',up);
+stage.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.deltaY<0?1.1:0.9);scheduleApply();save();},{passive:false});
+// 오른쪽 버튼 메뉴는 글 입력란 밖에서는 띄우지 않는다 (Chrome은 Shift+오른쪽 버튼이면 페이지가 막아도 띄움)
+document.addEventListener('contextmenu',e=>{const t=e.target;if(t&&((t.tagName==='INPUT'&&t.type!=='range')||t.tagName==='TEXTAREA'||t.isContentEditable))return;e.preventDefault();});
+$('zoom').addEventListener('input',e=>{zoom=+e.target.value;apply();save();});
+function zoomAt(f){const nz=Math.min(6,Math.max(1,zoom*f));px=px*nz/zoom;py=py*nz/zoom;zoom=nz;if(zoom===1){px=py=0;}$('zoom').value=zoom;}
+// ---- 키보드 ----
+window.addEventListener('keydown',e=>{
+  const t=e.target; if(t&&((t.tagName==='INPUT'&&t.type!=='range')||t.tagName==='TEXTAREA'||t.tagName==='SELECT'||t.isContentEditable))return;
+  if(e.altKey||e.ctrlKey||e.metaKey)return;
+  const big=e.shiftKey; let used=true; const step=big?160:40;
+  switch(e.key){
+    case 'ArrowLeft': px+=step; break;
+    case 'ArrowRight': px-=step; break;
+    case 'ArrowUp': py+=step; break;
+    case 'ArrowDown': py-=step; break;
+    case '[': case '{': if(!sensor) rot-=big?7.5:0.5; break;
+    case ']': case '}': if(!sensor) rot+=big?7.5:0.5; break;
+    case '+': case '=': zoomAt(1.15); break;
+    case '-': case '_': zoomAt(1/1.15); break;
+    case ' ': spaceDown=true; stage.style.cursor='grab'; break;
+    case '?': openTab('help'); break;
+    case 'h': case 'H': case 'ㅗ': setAxis(axis==='h'?'free':'h'); break;
+    case 'v': case 'V': case 'ㅍ': setAxis(axis==='v'?'free':'v'); break;
+    case 'c': case 'C': case 'ㅊ': center(); break;
+    case 'Escape': if(aimOn)closeAim();else if($('modal').classList.contains('on')){stopScan();closeModal();}else closeDrawer(); break;
+    default: used=false;
+  }
+  if(used){e.preventDefault();apply();save();}
+});
+window.addEventListener('keyup',e=>{if(e.key===' '){e.preventDefault();spaceDown=false;stage.style.cursor='';}});
+function releaseSpace(){spaceDown=false;if(!ptrs.size)stage.style.cursor='';}
+window.addEventListener('blur',releaseSpace);document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseSpace();});
+document.querySelectorAll('footer button,#tabs button').forEach(b=>b.addEventListener('click',()=>b.blur()));
+// ---- 짚기 ----
+let tipT;
+function tap(p){const dx=(p[0]-px)/zoom,dy=(p[1]-py)/zoom;const r=Math.hypot(dx,dy);
+  const L=LAYERS.find(l=>r>=l.r0&&r<l.r1&&!S.hidden.includes(l.n));
+  const az=mod(Math.atan2(dx,-dy)*180/Math.PI-rot);
+  if(!L&&RD&&r>=RD&&r<R){const k=Math.round(az)%360;   // 맨 바깥 360° 눈금: 가장 가까운 1° 눈금을 강조
+    hl.setAttribute('r',(RD+R)/2);hl.setAttribute('stroke','#b99552');hl.setAttribute('stroke-width',R-RD);hl.setAttribute('fill','none');
+    hlCell.setAttribute('d',wedge({r0:RD,r1:R},k-0.5,1));
+    tip.innerHTML=`360° 눈금 · <b>${k}°</b> · ${az.toFixed(1)}°<small>${DEG_INFO}</small>`;tip.classList.add('on');
+    clearTimeout(tipT);tipT=setTimeout(()=>{tip.classList.remove('on');hl.setAttribute('r',0);hlCell.setAttribute('d','');},6000);return;}
+  if(!L){hl.setAttribute('r',0);hlCell.setAttribute('d','');tip.classList.remove('on');
+    if(r>R&&S.shown){const info=siteInfo(S.shown);const near=[...info.ds,...info.ps,...info.ss].find(x=>Math.abs(mod(x.az-az+180)-180)<5);   // 盤 둘레의 得水·破水·砂 표시
+      if(near){tip.innerHTML=`터 ${hEsc(S.shown)} · <b>${near.kind}</b> ${near.az.toFixed(1)}° · ${kindNote(near,info.gL)}${near.memo?' · '+hEsc(near.memo):''}`;tip.classList.add('on');clearTimeout(tipT);tipT=setTimeout(()=>tip.classList.remove('on'),6000);}}
+    return;}
+  const c=cellAt(L,az);
+  hl.setAttribute('r',(L.r0+L.r1)/2);hl.setAttribute('stroke','#b99552');hl.setAttribute('stroke-width',L.r1-L.r0);hl.setAttribute('fill','none');
+  if(c)hlCell.setAttribute('d',wedge(L,c[0],c[1]));
+  tip.innerHTML=`${PAN[panOf(L.n)].name} · 第${numCN(L.n)}層 ${L.name}`+(c&&c[2]?` · <b>${c[2]}</b>`:'')+` · ${az.toFixed(1)}°`+(LAYER_INFO[L.n]?`<small>${LAYER_INFO[L.n]}</small>`:'');tip.classList.add('on');
+  clearTimeout(tipT);tipT=setTimeout(()=>{tip.classList.remove('on');hl.setAttribute('r',0);hlCell.setAttribute('d','');},6000);}
+// ---- 센서 · 화면 유지 ----
+const bS=$('bSensor');
+let heading=null, wl=null;
+function onOri(e){let h=null;
+  if(typeof e.webkitCompassHeading==='number')h=e.webkitCompassHeading;
+  else if(e.absolute&&typeof e.alpha==='number')h=(360-e.alpha)%360;
+  if(h===null)return;heading=h;}
+let autoArm=false, sensorHold=false;   // autoArm: 첫 센서 값이 들어오면 나침반을 켠다 · sensorHold: 나침반 모드가 앱 센서(startCompass)를 잡고 있음
+// 나침반 따라가기. 나침반이 켜져 있거나 첫 값을 기다릴 때만 돈다(늘 도는 rAF는 배터리와 CPU를 먹음).
+// 평활은 시간 기준(τ 90ms, 20° 넘게 벌어지면 45ms)이라 센서 주기(안드로이드 20Hz·웹 60Hz)와 상관없이 같은 느낌으로 따라오고, 0.02° 안으로 맞으면 그리지 않는다
+let tickOn=false,tickPrev=0;
+function ensureTick(){if(!tickOn){tickOn=true;tickPrev=0;requestAnimationFrame(tick);}}
+function tick(ts){const dt=tickPrev?Math.min(100,ts-tickPrev):16;tickPrev=ts;
+  if(!sensor&&autoArm&&heading!==null){autoArm=false;turnOn(true);}
+  if(sensor&&heading!==null){const tgt=-(heading+(S.declOn?S.decl:0));const d=mod(tgt-rot+180)-180;
+    if(Math.abs(d)>0.02){rot+=d*(1-Math.exp(-dt/(Math.abs(d)>20?45:90)));apply();}}
+  if(sensor||autoArm)requestAnimationFrame(tick);else tickOn=false;}
+async function keepAwake(on){if(NATIVE&&NATIVE.keepScreenOn){NATIVE.keepScreenOn(!!on);return;}try{if(on&&'wakeLock' in navigator){if(!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>{wl=null;});}}else if(!on&&wl){await wl.release();wl=null;}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&sensor&&S.wake)keepAwake(true);});
+function holdNative(){if(NATIVE_COMPASS&&!sensorHold){sensorHold=true;nativeCompass(true);}}
+function turnOn(auto){sensor=true;ensureTick();bS.classList.add('on');keepAwake(S.wake);
+  msg.textContent=(auto?'나침반이 자동으로 켜졌습니다(설정에서 끌 수 있음). ':'')+(S.declOn?`眞北 보정(${S.decl}°)을 적용해 `:'')+'자침이 磁北을 가리키도록 盤이 돌아갑니다. 화면 위쪽 붉은 선이 向입니다. 철제 구조물·자석 근처에서는 오차가 생깁니다.';}
+function stopSensor(){autoArm=false;if(!sensor)return;sensor=false;heading=null;bS.classList.remove('on');if(sensorHold){sensorHold=false;nativeCompass(false);}window.removeEventListener('deviceorientationabsolute',onOri,true);window.removeEventListener('deviceorientation',onOri,true);keepAwake(false);}
+async function startSensor(){if(sensor)return;
+  try{
+    if(NATIVE_COMPASS){holdNative();}
+    else if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+      const r=await DeviceOrientationEvent.requestPermission(); if(r!=='granted'){msg.textContent='센서 사용이 허용되지 않았습니다. 수동 회전으로 사용하십시오.';return;}
+      window.addEventListener('deviceorientation',onOri,true);
+    } else { window.addEventListener('deviceorientationabsolute',onOri,true); window.addEventListener('deviceorientation',onOri,true); }
+    autoArm=false;turnOn(false);
+    setTimeout(()=>{if(sensor&&heading===null){stopSensor();msg.textContent='이 기기·브라우저에서는 방위 센서를 읽을 수 없습니다. 수동 회전으로 사용하십시오.';}},2500);
+  }catch(e){msg.textContent='센서를 켤 수 없습니다: '+e.message;}
+}
+bS.addEventListener('click',()=>{if(sensor){stopSensor();msg.textContent='수동 회전 모드입니다.';}else startSensor();});
+// 앱을 열 때 나침반 자동 켜기: 센서를 조용히 듣다가 첫 값이 들어오는 순간 켠다(값이 안 오는 기기는 그대로 수동). iOS는 사용자 동작 없이 센서 허가를 받을 수 없어 안내만 한다
+function autoCompass(){if(S.autoCompass===false||sensor||!hasSensors())return;
+  if(NATIVE_COMPASS)holdNative();
+  else if(typeof DeviceOrientationEvent.requestPermission==='function'){msg.textContent='나침반 단추를 누르면 센서로 盤이 磁北에 맞춰집니다.';return;}
+  else{window.addEventListener('deviceorientationabsolute',onOri,true);window.addEventListener('deviceorientation',onOri,true);}
+  autoArm=true;ensureTick();}
+const bA=$('bAxis'); const AXN={free:'이동 자유',h:'가로만 이동',v:'세로만 이동'};
+function setAxis(a){axis=a;bA.textContent=AXN[a];bA.classList.toggle('on',a!=='free');
+  msg.textContent=a==='free'?'이동 방향 제한을 풀었습니다.':(a==='h'?'가로로만 움직입니다. 끌기(한 손가락·왼쪽 버튼 포함)가 이동이 되고, 세로는 고정됩니다.':'세로로만 움직입니다. 끌기(한 손가락·왼쪽 버튼 포함)가 이동이 되고, 가로는 고정됩니다.');}
+bA.addEventListener('click',()=>setAxis(axis==='free'?'h':axis==='h'?'v':'free'));
+const bL=$('bLock');
+bL.addEventListener('click',()=>{locked=!locked;bL.classList.toggle('on',locked);msg.textContent=locked?'회전이 잠겼습니다. 한 손가락으로 이동합니다.':'한 손가락으로 盤을 돌립니다.';});
+$('bReset').addEventListener('click',()=>{rot=0;zoom=1;px=py=0;$('zoom').value=1;hlCell.setAttribute('d','');apply();save();});
+function center(){px=py=0;apply();save();msg.textContent='盤을 화면 가운데로 옮겼습니다. 확대와 회전은 그대로입니다.';}
+$('bCenter').addEventListener('click',center);
+// ---- 시작 ----
+async function loadLayers(){
+  if(/^https?:$/.test(location.protocol)){try{const r=await fetch('layers.json',{cache:'no-cache'});if(r.ok){const j=await r.json();if(Array.isArray(j)&&j.length&&j[0].cells)return j;}}catch(e){}}
+  return EMBEDDED_LAYERS;
+}
+(async()=>{
+  LAYERS=await loadLayers(); if(!LAYERS.length){msg.textContent='층 데이터를 읽지 못했습니다.';return;}
+  build(); $('nLayers').textContent=numCN(ringCount())+'層'; $('verTag').textContent=' · v'+APP_VERSION; $('zoom').value=zoom; apply(); drawSiteMarks();
+  checkRecHash(); autoCompass(); if(syncOn()&&S.sync.auto)setTimeout(()=>syncNow(false),1500);
+  if(!NATIVE&&'serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){try{navigator.serviceWorker.register('sw.js').then(watchSw).catch(()=>{});}catch(e){}}
+  if(NATIVE_UPD)NATIVE.updCheck(false);   // 앱이 확인할 때가 되었으면 확인하고, 받는 중·준비된 업데이트가 있으면 상태를 다시 알려 줌
+  else if(!S.updChecked||Date.now()-S.updChecked>86400000)setTimeout(()=>checkUpdate(false),5000);
+})();
+</script>
+</body>
+</html>
