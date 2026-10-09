@@ -7,6 +7,9 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- 다른 기기의 기록 QR 읽기 -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- 자동 업데이트: 앱이 새 버전 APK를 받아 스스로 설치. Android 14+에서 이 앱이 설치한 적이 있으면 확인 없이 업데이트 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
 
     <uses-feature android:name="android.hardware.sensor.compass" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />

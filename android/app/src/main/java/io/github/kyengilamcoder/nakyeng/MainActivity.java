@@ -51,6 +51,7 @@ import java.nio.charset.StandardCharsets;
  * assets/www 의 웹앱을 WebView 하나에 띄우고, 웹앱이 부르는 window.NakyengAndroid
  * (파일 저장·보내기·복사·화면 유지·외부 링크)를 제공한다. 인터넷 없이 동작한다.
  * 파일 고르기(기록 가져오기)와 카메라(QR 읽기)는 WebView가 요청하면 이어 준다.
+ * 새 버전은 AppUpdater가 스스로 받아 설치한다(자동 업데이트).
  */
 public class MainActivity extends Activity implements SensorEventListener {
     private static final String START_URL = "file:///android_asset/www/index.html";
@@ -64,6 +65,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     private String pendingGeoOrigin;
     private PermissionRequest pendingCamera;
     private ValueCallback<Uri[]> pendingFile;
+    private AppUpdater updater;
 
     // 방위 센서: 웹뷰의 deviceorientation은 기기마다 오지 않아, 앱이 직접 읽어 페이지로 넘긴다
     private SensorManager sensorManager;
@@ -159,6 +161,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                     intent = new Intent(Intent.ACTION_GET_CONTENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*");
                 }
                 try {
+                    updater.hold();
                     startActivityForResult(Intent.createChooser(intent, "파일 고르기"), REQ_FILE);
                 } catch (ActivityNotFoundException e) {
                     pendingFile = null;
@@ -168,6 +171,11 @@ public class MainActivity extends Activity implements SensorEventListener {
                 return true;
             }
         });
+
+        updater = new AppUpdater(this, js -> runOnUiThread(() -> { if (web != null) web.evaluateJavascript(js, null); }));
+        updater.onCreate();
+        String testApi = getIntent().getStringExtra("updApi");   // 디버그 빌드 시험용(AppUpdater.setTestApi)
+        if (testApi != null) updater.setTestApi(testApi);
 
         if (savedInstanceState != null) web.restoreState(savedInstanceState);
         else web.loadUrl(START_URL);
@@ -234,6 +242,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     protected void onPause() {
         unregisterCompass();
         web.onPause();
+        updater.onPause();
         super.onPause();
     }
 
@@ -242,6 +251,13 @@ public class MainActivity extends Activity implements SensorEventListener {
         super.onResume();
         web.onResume();
         if (compassWanted) registerCompass();
+        updater.onResume();
+    }
+
+    @Override
+    protected void onStop() {
+        updater.onStop();   // 앱을 벗어날 때: 받아 둔 새 버전을 확인 없이 설치할 수 있으면 이때 설치
+        super.onStop();
     }
 
     // ---- 방위 센서 ----
@@ -333,6 +349,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     @Override
     protected void onDestroy() {
+        if (updater != null) updater.onDestroy();
         if (web != null) {
             web.destroy();
             web = null;
@@ -440,6 +457,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                 send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 runOnUiThread(() -> {
                     try {
+                        updater.hold();
                         startActivity(Intent.createChooser(send, "기록 보내기"));
                     } catch (ActivityNotFoundException e) {
                         Toast.makeText(MainActivity.this, "보낼 수 있는 앱이 없습니다.", Toast.LENGTH_SHORT).show();
@@ -472,6 +490,28 @@ public class MainActivity extends Activity implements SensorEventListener {
         @JavascriptInterface
         public void openExternal(String url) {
             runOnUiThread(() -> openExternalUrl(url));
+        }
+
+        /** 새 버전 확인. 결과·진행은 window.__nakyengUpdate({s, v, p, silent, m, manual})로 알린다. */
+        @JavascriptInterface
+        public void updCheck(boolean manual) {
+            runOnUiThread(() -> updater.check(manual));
+        }
+
+        /** 받아 둔 새 버전을 설치(없으면 받은 뒤 설치). */
+        @JavascriptInterface
+        public void updInstall() {
+            runOnUiThread(() -> updater.install());
+        }
+
+        @JavascriptInterface
+        public boolean updGetAuto() {
+            return updater.isAuto();
+        }
+
+        @JavascriptInterface
+        public void updSetAuto(boolean on) {
+            runOnUiThread(() -> updater.setAuto(on));
         }
     }
 }

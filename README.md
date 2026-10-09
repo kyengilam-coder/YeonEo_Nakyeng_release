@@ -19,7 +19,7 @@
 기록 탭의 "다른 기기와 주고받기"에서 **보내기**(공유 창), **파일 내보내기·가져오기**, **링크 복사**, **QR 보이기·읽기**, **붙여넣기**를 쓸 수 있습니다. 설정 탭에서 GitHub 토큰(gist 권한만)으로 연결하면 **자동 동기화**가 되고, 다른 기기는 연결된 기기의 "연결 QR"을 읽으면 됩니다. 토큰은 각 기기 안에만 저장됩니다.
 
 ## 자동 업데이트
-새 버전이 나오면 앱 아래에 띠로 알립니다. Windows·Linux(AppImage)는 앱이 스스로 내려받아 다시 시작할 때 설치합니다(Release의 `latest*.yml`을 봅니다). Android는 APK 받기 링크를 열어 주고, macOS는 서명이 없어 자동 설치가 안 되므로 안내만 합니다. 웹·홈 화면 설치판은 새 파일을 받으면 "새로고침" 띠가 뜹니다.
+새 버전이 나오면 앱 아래에 띠로 알립니다. Windows·Linux(AppImage)는 앱이 스스로 내려받아 다시 시작할 때 설치합니다(Release의 `latest*.yml`을 봅니다). Android(0.7.6 이상)는 앱이 스스로 APK를 내려받아 패키지·버전·서명을 확인한 뒤 설치합니다. Android 12 이상은 처음 한 번 "이 출처 허용"을 켜면 그 뒤로 앱을 닫거나 다른 앱으로 넘어갈 때 확인 없이 설치되어 다음에 열면 새 버전이고, Android 7~11은 띠의 "설치"를 누르면 시스템 확인 창을 거칩니다(설정 탭의 "자동 업데이트"로 끌 수 있음). 0.7.5 이하에서 0.7.6으로는 한 번 직접 내려받아 설치해야 합니다. macOS는 서명이 없어 자동 설치가 안 되므로 안내만 합니다. 웹·홈 화면 설치판은 새 파일을 받으면 "새로고침" 띠가 뜹니다.
 
 ## 기기별 차이
 - **나침반**: 방위 센서가 있는 폰·패드에서만 동작합니다. 컴퓨터에서는 자동으로 꺼지고 수동 회전으로 씁니다.
@@ -31,7 +31,7 @@
 ## 저장소 구성
 - `app/` — 웹앱 본체(모든 판이 이 파일을 씁니다). 원본은 개발 저장소에 있으며 릴리스 때 복사해 옵니다.
 - `desktop/` — Windows·macOS·Linux 앱(Electron). `npm ci && npm run dist:linux` 처럼 빌드합니다.
-- `android/` — Android 앱(WebView). `./gradlew assembleRelease`. 빌드 전에 `app/`이 `assets/www`로 복사됩니다.
+- `android/` — Android 앱(WebView). `./gradlew assembleRelease`. 빌드 전에 `app/`이 `assets/www`로 복사됩니다. 자동 업데이트는 `AppUpdater.java`가 맡습니다. 디버그 빌드는 `adb shell am start -n io.github.kyengilamcoder.nakyeng/.MainActivity --es updApi http://10.0.2.2:8000/latest.json` 처럼 확인 주소를 시험 서버로 바꿀 수 있습니다(디버그 빌드만 평문 HTTP 허용).
 - `.github/workflows/release.yml` — `v`로 시작하는 태그를 올리면 모든 판을 만들어 Release에 붙이고, 웹판을 GitHub Pages에 올립니다.
 
 ## 새 버전 내기
